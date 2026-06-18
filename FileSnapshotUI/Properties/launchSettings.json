@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "FileSnapshotUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "FileSnapshotUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
