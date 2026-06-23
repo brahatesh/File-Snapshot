@@ -11,14 +11,6 @@ using FileSnapshotUI.ViewModels;
 using Windows.UI.ViewManagement;
 using Microsoft.UI;
 
-// -----------------------------------------------------------------------------
-// SystemTray for WinUI 3
-// A complete system tray (notification area) implementation for WinUI 3 apps.
-//
-// Repository: https://github.com/MEHDIMYADI
-// Author: Mehdi Dimyadi
-// License: MIT
-// -----------------------------------------------------------------------------
 
 namespace FileSnapshotUI
 {
@@ -132,25 +124,6 @@ namespace FileSnapshotUI
             RightPanelTransform.X = 0;
             TabTransform.X = 0;
             Scrim.Opacity = 0;
-        }
-
-        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-        {
-            if (args.IsSettingsSelected)
-            {
-                NavigateToSettings();
-                return;
-            }
-
-            if (args.SelectedItem is NavigationViewItem selectedItem)
-            {
-                switch (selectedItem.Tag)
-                {
-                    case "home":
-                        RootFrame.Navigate(typeof(HomePage));
-                        break;
-                }
-            }
         }
 
         public void NavigateToSettings()
