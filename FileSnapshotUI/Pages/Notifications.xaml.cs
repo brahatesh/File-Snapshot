@@ -14,6 +14,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using FileSnapshotUI.ViewModels;
 using FileSnapshotUI.Models;
+using FileSnapshotUI.Services;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -29,12 +30,11 @@ public sealed partial class Notifications : Page
     public Notifications()
     {
         InitializeComponent();
-        _viewModel = new NotificationViewModel();
+        _viewModel = NotificationService.Instance.ViewModel;
         this.DataContext = _viewModel;
-        _viewModel.AddNotification(new FileItem { FullPath = "C:\\dummy.xlsx" }, "test");
     }
 
-    public NotificationViewModel ViewModel => _viewModel;
+    //public NotificationViewModel ViewModel => _viewModel;
 
     private void OnNotificationClicked(object sender, RoutedEventArgs e) {
         if(sender is Button button && button.DataContext is Notification notification) {
@@ -44,7 +44,9 @@ public sealed partial class Notifications : Page
 
     private void OnRemoveNotification(object sender, RoutedEventArgs e) { 
         if(sender is Button button && button.DataContext is Notification notification) {
-            _viewModel.RemoveNotification(notification.Id);
+            NotificationService.Instance.RemoveNotification(notification.Id);
+            //_viewModel.RemoveNotification(notification.Id);
+            
         }
     }
 

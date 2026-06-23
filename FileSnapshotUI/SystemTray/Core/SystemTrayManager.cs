@@ -312,7 +312,7 @@ namespace SystemTray.Core
             public IcoIcon(string path)
             {
                 // Build full path inside package
-                string fullPath = Path.Combine(Package.Current.InstalledLocation.Path, path);
+                string fullPath = Path.Combine(AppContext.BaseDirectory, path);
 
                 if (!File.Exists(fullPath))
                     throw new FileNotFoundException("Icon file not found.", fullPath);

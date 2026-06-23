@@ -1,0 +1,6 @@
+﻿CoCreateInstance
+CoTaskMemFree
+FileOpenDialog
+IFileOpenDialog
+IShellItem
+SIGDN

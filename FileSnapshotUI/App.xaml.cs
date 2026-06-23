@@ -20,7 +20,7 @@ namespace FileSnapshotUI
 {
     public partial class App : Application
     {
-        private static WindowHelper windowHelper;
+        private static WindowHelper? windowHelper;
 
         [STAThread]
         public static void Main(string[] args)

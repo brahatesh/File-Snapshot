@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="FileSnapshotUI.Pages.DetailsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FileSnapshotUI.Pages"
+    xmlns:models="using:FileSnapshotUI.Models"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer VerticalScrollBarVisibility ="Auto" Grid.Row="1">
+        <ItemsControl x:Name="RootItemControl" ItemsSource="{Binding Snapshots}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:SnapshotDetails">
+                    <Border 
+                        Padding="12"
+                        Margin="0,0,0,8"
+                        BorderThickness="1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        CornerRadius="8"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" >
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock 
+                                Text="{Binding snapshotTimeString, Mode=OneWay}"
+                                VerticalAlignment="Center" />
+
+                            <Button
+                                Grid.Column="1"
+                                Click="RestoreSnapshot_Click"
+                                CommandParameter="{x:Bind}">
+                                <SymbolIcon Symbol="Refresh" />
+                            </Button>
+
+                            <Button
+                                Grid.Column="2"
+                                Click="DeleteSnapshot_Click"
+                                CommandParameter="{x:Bind}">
+                                <SymbolIcon Symbol="Delete" />
+                            </Button>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</Page>

@@ -9,8 +9,10 @@ internal class WindowHelper {
     private POINT? minWindowSize = null;
     private POINT? maxWindowSize = null;
     private readonly Window window;
-    private static WinProc newWndProc = null;
+    private static WinProc? newWndProc = null;
     private static nint oldWndProc = nint.Zero;
+
+    public ElementTheme currentTheme;
 
     internal delegate IntPtr WinProc(IntPtr hWnd, WindowMessage Msg, IntPtr wParam, IntPtr lParam);
 

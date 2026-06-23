@@ -7,6 +7,9 @@ using Microsoft.UI.Windowing;
 using System.ComponentModel.Design;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
+using FileSnapshotUI.ViewModels;
+using Windows.UI.ViewManagement;
+using Microsoft.UI;
 
 // -----------------------------------------------------------------------------
 // SystemTray for WinUI 3
@@ -25,8 +28,10 @@ namespace FileSnapshotUI
     }
     public partial class MainWindow : Window
     {
-        private SystemTrayManager systemTrayManager;
+        public RootViewModel ViewModel { get; } = new();
+        public SystemTrayManager systemTrayManager;
         private bool _isDrawerOpen;
+        private UISettings _uiSettings;
 
         public MainWindow()
         {
@@ -42,15 +47,21 @@ namespace FileSnapshotUI
                 CloseButtonMinimizesToTray = true,
                 LanguageCode = "en-US"
             };
-
             Closed += (_, _) => systemTrayManager?.Dispose();
 
-            //RightPanelFrame.ContentTransitions = null;
+            _uiSettings = new UISettings();
+            _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;    
 
             RootFrame.Navigate(typeof(Pages.RootPage), this);
 
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(AppTitleBar);
+
+            var initialBgColor = _uiSettings.GetColorValue(UIColorType.Background);
+            bool initialIsDarkMode = initialBgColor == Colors.Black;
+            foreach (var file in ViewModel.Files) {
+                file.UpdateTheme(initialIsDarkMode);
+            }
         }
 
         public void OpenDrawer(DrawerContent content) {
@@ -61,7 +72,7 @@ namespace FileSnapshotUI
 
             switch (content) {
                 case DrawerContent.Settings:
-                    RightPanelFrame.Navigate(typeof(Pages.SettingsPage), systemTrayManager, new SuppressNavigationTransitionInfo());
+                    RightPanelFrame.Navigate(typeof(Pages.SettingsPage), this, new SuppressNavigationTransitionInfo());
                     break;
                 case DrawerContent.Notifications:
                     RightPanelFrame.Navigate(typeof(Pages.Notifications), null, new SuppressNavigationTransitionInfo());
@@ -153,5 +164,16 @@ namespace FileSnapshotUI
         private void Scrim_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e) => CloseDrawer();
 
         private void DrawerTabButton_Click(object sender, RoutedEventArgs e) => CloseDrawer();
+
+        private void UiSettings_ColorValuesChanged(UISettings sender, object args) {
+            DispatcherQueue.TryEnqueue(() => {
+                var bgColor = sender.GetColorValue(UIColorType.Background);
+                bool isDarkMode = bgColor == Colors.Black;
+
+                foreach (var file in ViewModel.Files) {
+                    file.UpdateTheme(isDarkMode);
+                }
+            });
+        }
     }
 }

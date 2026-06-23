@@ -10,95 +10,99 @@
     mc:Ignorable="d">
 
     <Grid Padding="20">
-        <StackPanel Spacing="16">
-            <!-- Header -->
-            <TextBlock
-                Text="Notifications"
-                Style="{StaticResource TitleTextBlockStyle}"
-                Margin="0,0,0,10" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <TextBlock
+            Text="Notifications"
+            Style="{StaticResource TitleTextBlockStyle}"
+            Margin="0,0,0,10" />
             
-            <!-- Notifications List -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Notifications}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="models:Notification">
-                            <Border
-                                Padding="12"
-                                Margin="0,0,0,8"
-                                BorderThickness="1"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                CornerRadius="8"
-                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" >
+        <!-- Notifications List -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding Notifications}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:Notification">
+                        <Border
+                            Padding="12"
+                            Margin="0,0,0,8"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            CornerRadius="8"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" >
 
-                                <Grid ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="48" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="100" />
-                                    </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="48" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="100" />
+                                </Grid.ColumnDefinitions>
                                     
-                                    <!-- File Icon -->
-                                    <ImageIcon
-                                        Grid.Column="0"
-                                        Width="48"
-                                        Height="48"
-                                        Source="{Binding FileItem.IconGlyphPath}"
-                                        VerticalAlignment="Top" />
+                                <!-- File Icon -->
+                                <ImageIcon
+                                    Grid.Column="0"
+                                    Width="48"
+                                    Height="48"
+                                    Source="{Binding FileItem.IconGlyphPath}"
+                                    VerticalAlignment="Top" />
                                     
-                                    <!-- Content -->
-                                    <StackPanel
-                                        Grid.Column="1"
-                                        VerticalAlignment="Top"
-                                        Spacing="4">
-                                        <TextBlock
-                                            Text="{Binding FileItem.FileName}"
-                                            Style="{StaticResource SubtitleTextBlockStyle}"
-                                            TextWrapping="WrapWholeWords" />
-                                        <TextBlock
-                                            Text="{Binding Message}"
-                                            Style="{StaticResource BodyTextBlockStyle}"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            TextWrapping="WrapWholeWords" />
-                                        <TextBlock
-                                            Text="{Binding CreatedAtLocal}"
-                                            Style="{StaticResource CaptionTextBlockStyle}"
-                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                    </StackPanel>
+                                <!-- Content -->
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Top"
+                                    Spacing="4">
+                                    <TextBlock
+                                        Text="{Binding FileItem.FileName}"
+                                        Style="{StaticResource SubtitleTextBlockStyle}"
+                                        TextWrapping="WrapWholeWords" />
+                                    <TextBlock
+                                        Text="{Binding Message}"
+                                        Style="{StaticResource BodyTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        TextWrapping="WrapWholeWords" />
+                                    <TextBlock
+                                        Text="{Binding CreatedAtLocal}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
                                     
-                                    <!-- Actions -->
-                                    <StackPanel
-                                        Grid.Column="2"
-                                        VerticalAlignment="Top"
-                                        Spacing="8">
-                                        <Button
-                                            Content="Open"
-                                            Click="OnNotificationClicked"
-                                            Style="{StaticResource AccentButtonStyle}"
-                                            Width="88" />
-                                        <Button
-                                            Content="Remove"
-                                            Click="OnRemoveNotification"
-                                            Width="88" />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+                                <!-- Actions -->
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Top"
+                                    Spacing="8">
+                                    <Button
+                                        Content="Open"
+                                        Click="OnNotificationClicked"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Width="88" />
+                                    <Button
+                                        Content="Remove"
+                                        Click="OnRemoveNotification"
+                                        Width="88" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
             
             <!-- Empty State -->
-            <StackPanel
+        <StackPanel
                 x:Name="EmptyState"
+                Grid.Row="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Spacing="12"
                 Visibility="{Binding Notifications.Count, Converter={StaticResource CollectionLengthToVisibilityConverter}, ConverterParameter=Inverse}">
-                <TextBlock
+            <TextBlock
                     Text="No notifications"
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     HorizontalAlignment="Center" />
-            </StackPanel>
         </StackPanel>
     </Grid>
 </Page>
