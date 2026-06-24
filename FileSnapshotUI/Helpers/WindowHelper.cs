@@ -12,8 +12,6 @@ internal class WindowHelper {
     private static WinProc? newWndProc = null;
     private static nint oldWndProc = nint.Zero;
 
-    public ElementTheme currentTheme;
-
     internal delegate IntPtr WinProc(IntPtr hWnd, WindowMessage Msg, IntPtr wParam, IntPtr lParam);
 
     internal enum WindowMessage : int {

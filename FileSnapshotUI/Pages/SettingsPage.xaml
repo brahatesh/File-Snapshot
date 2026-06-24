@@ -23,7 +23,7 @@
             Grid.Row="1"
             VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="50">
-                <StackPanel>
+                <StackPanel x:Name="FileSettingsPanel">
                     <TextBlock
                         Text="File settings"
                         Style="{StaticResource SubtitleTextBlockStyle}"
@@ -44,7 +44,7 @@
                                 VerticalAlignment="Center"/>
 
                             <TextBlock
-                                Text="{x:Bind ViewModel.SelectedFile.FullPath}" 
+                                Text="{x:Bind ViewModel.SelectedFile.FullPath, Mode=OneWay}" 
                                 x:Name="SettingsFullPath"
                                 Grid.Column="1" 
                                 VerticalAlignment="Center"/>
@@ -73,7 +73,7 @@
                                 VerticalAlignment="Center"/>
 
                             <TextBlock
-                                Text="{x:Bind ViewModel.SelectedFile.BackupPath}" 
+                                Text="{x:Bind ViewModel.SelectedFile.BackupPath, Mode=OneWay}" 
                                 x:Name="SettingsBackupPath"
                                 Grid.Column="1" 
                                 VerticalAlignment="Center"/>
@@ -86,6 +86,36 @@
                                 VerticalAlignment="Center">
                                 <FontIcon Glyph="&#xE70F;" />
                             </Button>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBox 
+                                    x:Name="BackupDuration" 
+                                    PlaceholderText="e.g., 1d 2h 30m" 
+                                    Header="Snapshot Duration"
+                                    VerticalAlignment="Center"/>
+
+                                <TextBlock 
+                                    x:Name="BackupDurationError" 
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}" 
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Visibility="Collapsed"
+                                    Margin="0,4,0,0" />
+                            </StackPanel>
+                            <Button 
+                                Grid.Column="1"
+                                Click="SaveBackupDuration_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                VerticalAlignment="Bottom">
+                                <FontIcon Glyph="&#xE105;" />
+                            </Button>
+                                
                         </Grid>
                     </StackPanel>
                 </StackPanel>

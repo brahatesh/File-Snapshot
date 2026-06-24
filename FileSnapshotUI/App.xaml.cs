@@ -6,15 +6,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using FileSnapshotUI.Helpers;
-
-// -----------------------------------------------------------------------------
-// SystemTray for WinUI 3
-// A complete system tray (notification area) implementation for WinUI 3 apps.
-//
-// Repository: https://github.com/MEHDIMYADI
-// Author: Mehdi Dimyadi
-// License: MIT
-// -----------------------------------------------------------------------------
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using FileSnapshotUI.Services;
 
 namespace FileSnapshotUI
 {

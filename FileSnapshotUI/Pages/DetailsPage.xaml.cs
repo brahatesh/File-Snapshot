@@ -45,7 +45,7 @@ namespace FileSnapshotUI.Pages {
                     ContentDialog confirmDialog = new ContentDialog {
                         XamlRoot = this.XamlRoot,
                         Title = "Delete snapshot",
-                        Content = $"Are you sure that you want to delete snapshot for file {parentFile.FileName} at time {snapshot.snapshotTime}?",
+                        Content = $"Are you sure that you want to delete snapshot for file {parentFile.FileName} at time {snapshot.SnapshotTimeString}?",
                         PrimaryButtonText = "Delete",
                         SecondaryButtonText = "Cancel"
                     };

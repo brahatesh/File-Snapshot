@@ -27,6 +27,7 @@ namespace FileSnapshotUI.Pages;
 public sealed partial class Notifications : Page
 {
     private NotificationViewModel _viewModel;
+    private MainWindow? _hostWindow;
     public Notifications()
     {
         InitializeComponent();
@@ -38,7 +39,8 @@ public sealed partial class Notifications : Page
 
     private void OnNotificationClicked(object sender, RoutedEventArgs e) {
         if(sender is Button button && button.DataContext is Notification notification) {
-            OnNotificationSelected?.Invoke(notification.FileItem);
+            //OnNotificationSelected?.Invoke(notification.FileItem);
+            _hostWindow?.SelectFile(notification.FileItem);
         }
     }
 
@@ -46,9 +48,15 @@ public sealed partial class Notifications : Page
         if(sender is Button button && button.DataContext is Notification notification) {
             NotificationService.Instance.RemoveNotification(notification.Id);
             //_viewModel.RemoveNotification(notification.Id);
-            
         }
     }
 
-    public event Action<FileItem>? OnNotificationSelected;
+    protected override void OnNavigatedTo(NavigationEventArgs e) {
+        base.OnNavigatedTo(e);
+        if(e.Parameter is MainWindow window) {
+            _hostWindow = window;
+        }
+    }
+
+    //public event Action<FileItem>? OnNotificationSelected;
 }

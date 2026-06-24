@@ -1,12 +1,13 @@
-﻿using System.Collections.ObjectModel;
+﻿using FileSnapshotUI.Models;
+using FileSnapshotUI.Services;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using FileSnapshotUI.Models;
 
 namespace FileSnapshotUI.ViewModels;
 
-public class RootViewModel : INotifyPropertyChanged {
-    public ObservableCollection<FileItem> Files { get; } = new();
+public partial class RootViewModel : INotifyPropertyChanged {
+    public ObservableCollection<FileItem> Files { get; } = [];
 
     private FileItem? _selectedFile;
     public FileItem? SelectedFile {
@@ -27,10 +28,6 @@ public class RootViewModel : INotifyPropertyChanged {
                 OnPropertyChanged(nameof(SelectedFileLastBackup));
             }
         }
-    }
-
-    private void _selectedFile_PropertyChanged(object? sender, PropertyChangedEventArgs e) {
-        throw new System.NotImplementedException();
     }
 
     public string SelectedFileLastBackup => SelectedFile?.LastBackupString ?? "Never";

@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using FileSnapshotUI.ViewModels;
 using Windows.UI.ViewManagement;
 using Microsoft.UI;
+using FileSnapshotUI.Models;
 
 
 namespace FileSnapshotUI
@@ -23,7 +24,7 @@ namespace FileSnapshotUI
         public RootViewModel ViewModel { get; } = new();
         public SystemTrayManager systemTrayManager;
         private bool _isDrawerOpen;
-        private UISettings _uiSettings;
+        private readonly UISettings _uiSettings;
 
         public MainWindow()
         {
@@ -67,7 +68,7 @@ namespace FileSnapshotUI
                     RightPanelFrame.Navigate(typeof(Pages.SettingsPage), this, new SuppressNavigationTransitionInfo());
                     break;
                 case DrawerContent.Notifications:
-                    RightPanelFrame.Navigate(typeof(Pages.Notifications), null, new SuppressNavigationTransitionInfo());
+                    RightPanelFrame.Navigate(typeof(Pages.Notifications), this, new SuppressNavigationTransitionInfo());
                     break;
             }
 
@@ -147,6 +148,14 @@ namespace FileSnapshotUI
                     file.UpdateTheme(isDarkMode);
                 }
             });
+        }
+
+        public void SelectFile(FileItem item) {
+            CloseDrawer();
+
+            if(RootFrame.Content is RootPage rootPage) {
+                rootPage.SelectFile(item);
+            }
         }
     }
 }

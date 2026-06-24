@@ -8,19 +8,21 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Runtime.CompilerServices;
+using FileSnapshotUI.Helpers;
 
 namespace FileSnapshotUI.Models;
 
-public class FileItem: INotifyPropertyChanged {
+public partial class FileItem: INotifyPropertyChanged {
     private string _fileName = string.Empty;
     private string _fullPath = string.Empty;
-    private Guid _id;
+    private readonly Guid _id;
     private string _backupPath = string.Empty;
     private DateTime _lastBackupUTC = DateTime.MinValue;
     private readonly string _defaultBackupPathRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileSnapshot");
     private bool _isDarkMode = false;
+    private TimeSpan _snapshotIntervalDuration;
 
-    public ObservableCollection<SnapshotDetails> Snapshots { get; } = new();
+    public ObservableCollection<SnapshotDetails> Snapshots { get; } = [];
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public FileItem(string filePath, string? backupPath = null) {
@@ -38,6 +40,8 @@ public class FileItem: INotifyPropertyChanged {
             _backupPath = backupPath;
         }
         Directory.CreateDirectory(_backupPath);
+
+        _snapshotIntervalDuration = TimeSpan.FromDays(1);
     }
 
     public DateTime LastBackup {
@@ -51,6 +55,15 @@ public class FileItem: INotifyPropertyChanged {
 
     public string LastBackupString {
         get => _lastBackupUTC == DateTime.MinValue ? "Never" : LastBackup.ToString("G");
+    }
+
+    public TimeSpan SnapshotIntervalDuration {
+        get => _snapshotIntervalDuration;
+        set => _snapshotIntervalDuration = value;
+    }
+
+    public string SnapshotIntervalDurationString {
+        get => TimeSpanJiraStringConverter.TimeSpanToJira(_snapshotIntervalDuration);
     }
 
     public Guid Id {
@@ -81,12 +94,18 @@ public class FileItem: INotifyPropertyChanged {
             _fullPath = value ?? string.Empty;
             _fileName = Path.GetFileName(_fullPath);
             UpdateTypeAndIcon();
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(FileName));
         } 
     }
 
     public string BackupPath {
         get => _backupPath;
-        set => _backupPath = value;
+        set {
+            _backupPath = value;
+            OnPropertyChanged();
+        }
     }
     
     private void UpdateTypeAndIcon() {

@@ -65,7 +65,7 @@ namespace FileSnapshotUI.Pages {
 
         private async void DeleteButton_Click(object sender, RoutedEventArgs e) {
             if (FilesListView.SelectedItem is FileItem selected) {
-                ContentDialog confirmDialog = new ContentDialog {
+                ContentDialog confirmDialog = new() {
                     XamlRoot = this.XamlRoot,
                     Title = "Remove file",
                     Content = $"Are you sure that you want to remove {selected.FileName}?",
@@ -101,15 +101,11 @@ namespace FileSnapshotUI.Pages {
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e) {
-            if(_hostWindow != null) {
-                _hostWindow.OpenDrawer(DrawerContent.Settings);
-            }
+            _hostWindow?.OpenDrawer(DrawerContent.Settings);
         }
 
         private void NotificationButton_Click(object sender, RoutedEventArgs e) {
-            if(_hostWindow != null) {
-                _hostWindow.OpenDrawer(DrawerContent.Notifications);
-            }
+            _hostWindow?.OpenDrawer(DrawerContent.Notifications);
         }
 
         private void UpdateDetailsFrame() {
@@ -129,6 +125,10 @@ namespace FileSnapshotUI.Pages {
                 selected.AddSnapshot();
                 NotificationService.Instance.AddNotification(selected, "Created snapshot");
             }
+        }
+
+        public void SelectFile(FileItem item) {
+            FilesListView.SelectedItem = item;
         }
     }
 }
