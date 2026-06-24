@@ -1,16 +1,17 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using SystemTray.Core;
-using SystemTray.UI;
+﻿using FileSnapshotUI.Models;
 using FileSnapshotUI.Pages;
+using FileSnapshotUI.ViewModels;
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
-using System.ComponentModel.Design;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
-using FileSnapshotUI.ViewModels;
+using System;
+using System.ComponentModel.Design;
+using SystemTray.Core;
+using SystemTray.UI;
 using Windows.UI.ViewManagement;
-using Microsoft.UI;
-using FileSnapshotUI.Models;
 
 
 namespace FileSnapshotUI
@@ -28,12 +29,12 @@ namespace FileSnapshotUI
 
         public MainWindow()
         {
+            var helper = new WindowHelper(this) { IsForceHidden = true };
+            
             this.InitializeComponent();
-
-            var helper = new WindowHelper(this);
+            
             systemTrayManager = new SystemTrayManager(helper)
             {
-                OpenSettingsAction = () => NavigateToSettings(),
                 IsIconVisible = true,
                 IconToolTip = "File Snapshot",
                 MinimizeToTray = true,
@@ -125,14 +126,6 @@ namespace FileSnapshotUI
             RightPanelTransform.X = 0;
             TabTransform.X = 0;
             Scrim.Opacity = 0;
-        }
-
-        public void NavigateToSettings()
-        {
-            if (systemTrayManager != null)
-            {
-                RootFrame.Navigate(typeof(SettingsPage), systemTrayManager);
-            }
         }
 
         private void Scrim_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e) => CloseDrawer();

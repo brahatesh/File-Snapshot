@@ -59,7 +59,12 @@ public partial class FileItem: INotifyPropertyChanged {
 
     public TimeSpan SnapshotIntervalDuration {
         get => _snapshotIntervalDuration;
-        set => _snapshotIntervalDuration = value;
+        set {
+            if (_snapshotIntervalDuration != value) {
+                _snapshotIntervalDuration = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     public string SnapshotIntervalDurationString {

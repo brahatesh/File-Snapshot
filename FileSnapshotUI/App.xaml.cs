@@ -14,6 +14,7 @@ namespace FileSnapshotUI
 {
     public partial class App : Application
     {
+        public static Microsoft.UI.Dispatching.DispatcherQueue MainDispatcher { get; private set; }
         private static WindowHelper? windowHelper;
 
         [STAThread]
@@ -32,11 +33,15 @@ namespace FileSnapshotUI
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            MainDispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+
             var window = new MainWindow();
             window.Activate();
 
             windowHelper = new WindowHelper(window);
             windowHelper.SetWindowMinMaxSize(new WindowHelper.POINT() { x = 700, y = 500 });
+
+            window.AppWindow.Hide();
         }
     }
 }

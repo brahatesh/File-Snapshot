@@ -23,6 +23,9 @@ namespace SystemTray.Core
         private readonly WndProc windowProc, nativeWindowProc;
         public bool IsIconVisible { get; set; }
         public bool CloseButtonMinimizesToTray { get; set; }
+
+        public bool IsForceHidden { get; set; } = false;
+
         public event Action? CloseButtonPressed;
 
         public WindowHelper(Window window)
@@ -47,6 +50,8 @@ namespace SystemTray.Core
 
         public void ShowWindowFromTray()
         {
+            IsForceHidden = false;
+
             var appWindow = this.AppWindow;
             if (appWindow == null) return;
 
@@ -102,6 +107,14 @@ namespace SystemTray.Core
 
         private nint WindowProc(nint hWnd, uint msg, nint wParam, nint lParam)
         {
+            if (msg==WM_WINDOWPOSCHANGING && IsForceHidden) {
+                var windowPos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
+                if((windowPos.flags & SWP_SHOWWINDOW) != 0) {
+                    windowPos.flags &= ~SWP_SHOWWINDOW;
+                    Marshal.StructureToPtr(windowPos, lParam, false);
+                }
+            }
+
             if (msg == WM_CLOSE)
             {
                 if (CloseButtonMinimizesToTray)
@@ -123,6 +136,20 @@ namespace SystemTray.Core
 
         private const int GWL_WNDPROC = -4;
         private const uint WM_CLOSE = 0x0010;
+
+        private const uint WM_WINDOWPOSCHANGING = 0x0046;
+        private const uint SWP_SHOWWINDOW = 0x0040;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WINDOWPOS {
+            public nint hwnd;
+            public nint hwndInsertAfter;
+            public int x;
+            public int y;
+            public int cx;
+            public int cy;
+            public uint flags;
+        }
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate nint WndProc(nint hWnd, uint msg, nint wParam, nint lParam);

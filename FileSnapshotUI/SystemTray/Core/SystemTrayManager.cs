@@ -44,7 +44,7 @@ namespace SystemTray.Core
             [new("ar", "ar-SA")] = ["الإعدادات", "خروج"],
             [new("ur", "ur-PK")] = ["ترتیبات", "خروج"],
             [new("he", "he-IL")] = ["הגדרות", "יציאה"],
-            [new("default", "default")] = ["Settings", "Exit"]
+            [new("default", "default")] = ["Open", "Exit"]
         };
 
         public bool IsIconVisible
@@ -146,8 +146,8 @@ namespace SystemTray.Core
                 {
                     contextMenuWindow?.Show((int)e.Rect.X, (int)e.Rect.Y);
                 }
-                if (contextMenuWindow != null)
-                    contextMenuWindow.MenuClosed += (_, _) => ToggleWindowVisibility();
+                //if (contextMenuWindow != null)
+                //    contextMenuWindow.MenuClosed += (_, _) => ToggleWindowVisibility();
             };
             SystemTrayIcon.LeftClick += (_, _) => ToggleWindowVisibility();
             SystemTrayIcon.Show();
@@ -180,7 +180,11 @@ namespace SystemTray.Core
 
             menuItems =
             [
-                new SystemTrayContextMenuWindow.Item(texts[0], new Command(OpenSettings)),
+                new SystemTrayContextMenuWindow.Item(texts[0], new Command(() => {
+                    if(!IsWindowVisible) {
+                        windowHelper.ShowWindowFromTray();
+                    }
+                })),
                 new SystemTrayContextMenuWindow.Item("--", null),
                 new SystemTrayContextMenuWindow.Item(texts[1], new Command(() => Application.Current.Exit()))
             ];
@@ -215,12 +219,6 @@ namespace SystemTray.Core
                 windowHelper.HideWindowToTray();
             else
                 windowHelper.ShowWindowFromTray();
-        }
-
-        private void OpenSettings()
-        {
-            windowHelper.ShowWindowFromTray();
-            OpenSettingsAction?.Invoke();
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
