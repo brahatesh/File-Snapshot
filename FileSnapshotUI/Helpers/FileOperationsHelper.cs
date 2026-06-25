@@ -100,11 +100,15 @@ public static class FileOperationsHelper {
 
     public static async Task DeleteDirectoryASync(string dirPath, CancellationToken token, bool deleteGit = true) {
         var dir = new DirectoryInfo(dirPath);
-        if (!dir.Exists) throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+        if (!dir.Exists) return;
 
-        if(deleteGit) Directory.Delete(dirPath, true);
+        if (deleteGit) {
+            RemoveReadOnlyAttributes(dir);
+            Directory.Delete(dirPath, true);
+        }
         else {
             foreach (FileInfo file in dir.GetFiles()) {
+                file.Attributes = FileAttributes.Normal;
                 File.Delete(file.FullName);
             }
 
@@ -113,6 +117,18 @@ public static class FileOperationsHelper {
                 await DeleteDirectoryASync(subDir.FullName, token);
             }
         }
+    }
+
+    private static void RemoveReadOnlyAttributes(DirectoryInfo directory) {
+        foreach (FileInfo file in directory.GetFiles("*", SearchOption.AllDirectories)) {
+            file.Attributes = FileAttributes.Normal;
+        }
+        
+        foreach (DirectoryInfo dir in directory.GetDirectories("*", SearchOption.AllDirectories)) {
+            dir.Attributes = FileAttributes.Normal;
+        }
+        
+        directory.Attributes = FileAttributes.Normal;
     }
 
     public static void SanitizeExcelFile(string filePath, CancellationToken token) {

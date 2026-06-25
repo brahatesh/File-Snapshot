@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.Windows.AppNotifications;
 using System;
 using System.ComponentModel.Design;
 using SystemTray.Core;
@@ -43,6 +44,7 @@ namespace FileSnapshotUI
                 LanguageCode = "en-US"
             };
             Closed += (_, _) => systemTrayManager?.Dispose();
+            Closed += (sender, args) => AppNotificationManager.Default.Unregister();
 
             _uiSettings = new UISettings();
             _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;    
