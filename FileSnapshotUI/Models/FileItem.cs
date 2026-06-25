@@ -158,9 +158,9 @@ public partial class FileItem: INotifyPropertyChanged {
         return glyphPath;
     }
 
-    public void AddSnapshot() {
-        Snapshots.Add(new SnapshotDetails(this.Id));
-        LastBackup = DateTime.Now;
+    public void AddSnapshot(DateTime snapshotTime, Commit commit) {
+        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime,commit));
+        LastBackup = snapshotTime;
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) {

@@ -71,8 +71,17 @@
                 <Button 
                     Grid.Column="4"
                     Click="NotificationButton_Click">
+                    <Grid>
+                        <FontIcon Glyph="&#xEA8F;"/>
 
-                    <FontIcon Glyph="&#xEA8F;"/>
+                        <InfoBadge 
+                            Value="{x:Bind RootViewModel.UnreadCount, Mode=OneWay}"
+                            Visibility="{x:Bind RootViewModel.HasUnreadNotifications, Mode=OneWay}"
+                            Style="{ThemeResource AttentionValueInfoBadgeStyle}"
+                            HorizontalAlignment="Right" 
+                            VerticalAlignment="Top" 
+                            Margin="0,-4,-4,0"/>
+                    </Grid>
                 </Button>
             </Grid>
 

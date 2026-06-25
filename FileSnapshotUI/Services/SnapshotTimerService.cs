@@ -12,11 +12,16 @@ namespace FileSnapshotUI.Services
     {
         private readonly BackgroundTaskQueue _queue;
         private readonly RootViewModel _viewModel;
+        private readonly SnapshotService _snapshotService;
 
-        public SnapshotTimerService(BackgroundTaskQueue queue, RootViewModel viewModel)
+        public SnapshotTimerService(
+            BackgroundTaskQueue queue, 
+            RootViewModel viewModel,
+            SnapshotService snapshotService)
         {
             _queue = queue;
             _viewModel = viewModel;
+            _snapshotService = snapshotService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -52,11 +57,13 @@ namespace FileSnapshotUI.Services
                     {
                         // 1. DO HEAVY I/O HERE (Background Thread)
                         // File.Copy(file.FullPath, Path.Combine(file.BackupPath, "snapshot.tmp"));
+                        await _snapshotService.PerformSnapshotAsync(file, token);
+
 
                         // 2. UPDATE UI HERE (UI Thread)
-                        App.MainDispatcher.TryEnqueue(() => {
-                            file.AddSnapshot(); 
-                        });
+                        //App.MainDispatcher.TryEnqueue(() => {
+                        //    file.AddSnapshot(); 
+                        //});
 
                         await default(ValueTask);
                     });

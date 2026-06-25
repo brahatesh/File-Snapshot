@@ -118,6 +118,9 @@ namespace FileSnapshotUI.Pages {
         }
 
         private void NotificationButton_Click(object sender, RoutedEventArgs e) {
+            if(RootViewModel.UnreadCount > 0) {
+                RootViewModel.UnreadCount = 0;
+            }
             _hostWindow?.OpenDrawer(DrawerContent.Notifications);
         }
 
@@ -135,7 +138,12 @@ namespace FileSnapshotUI.Pages {
         private void CreateSnapshot_Click(object sender, RoutedEventArgs e) {
             var selected = RootViewModel.SelectedFile;
             if (selected != null) {
-                selected.AddSnapshot();
+                var snapshotService = App.Services.GetRequiredService<SnapshotService>();
+                var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
+                queue.EnqueueTask(async (token) => {
+                    await snapshotService.PerformSnapshotAsync(selected, token);
+                });
+                //selected.AddSnapshot();
                 //NotificationService.Instance.AddNotification(selected, "Created snapshot");
             }
         }

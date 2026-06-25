@@ -38,11 +38,9 @@ namespace FileSnapshotUI
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) => {
                     services.AddSingleton<NotificationService>();
-                    // Register the Queue as a Singleton so everyone shares it
                     services.AddSingleton<BackgroundTaskQueue>();
-
-                    // Register RootViewModel as a Singleton so the UI and TimerService see the exact same list
                     services.AddSingleton<RootViewModel>();
+                    services.AddSingleton<SnapshotService>();
 
                     // Register both background services
                     services.AddHostedService<TaskProcessingService>();
