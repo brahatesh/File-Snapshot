@@ -1,6 +1,7 @@
 ﻿using FileSnapshotUI.Models;
 using FileSnapshotUI.Pages;
 using FileSnapshotUI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -22,7 +23,7 @@ namespace FileSnapshotUI
     }
     public partial class MainWindow : Window
     {
-        public RootViewModel ViewModel { get; } = new();
+        public RootViewModel ViewModel { get; } = App.Services.GetRequiredService<RootViewModel>();
         public SystemTrayManager systemTrayManager;
         private bool _isDrawerOpen;
         private readonly UISettings _uiSettings;

@@ -25,6 +25,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
 using FileSnapshotUI.Services;
 using System.Security;
+using Microsoft.Extensions.DependencyInjection;
 //using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -56,7 +57,7 @@ namespace FileSnapshotUI.Pages {
 
         private async unsafe void AddButton_Click(object sender, RoutedEventArgs e) {
             if (_hostWindow == null) return;
-            string? selectedFilePath = OpenFileDialogHelper.PickSingleFile(_hostWindow);
+            string? selectedFilePath = OpenDialogHelper.PickSingleFile(_hostWindow);
 
             if(!string.IsNullOrEmpty(selectedFilePath)) {
                 RootViewModel.Files.Add(new FileItem(selectedFilePath));
@@ -74,10 +75,22 @@ namespace FileSnapshotUI.Pages {
                 };
                 ContentDialogResult result = await confirmDialog.ShowAsync();
                 if(result == ContentDialogResult.Primary) {
+                    var backupPath = selected.BackupPath;
                     RootViewModel.Files.Remove(selected);
-                    DeleteButton.IsEnabled = false;
-                    CreateSnapshotButton.IsEnabled = false;
+                    //DeleteButton.IsEnabled = false;
+                    //CreateSnapshotButton.IsEnabled = false;
+
+                    var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
+                    queue.EnqueueTask(async (token) => {
+                        try {
+                            await FileOperationsHelper.DeleteDirectoryASync(backupPath, token);
+                        }
+                        catch (Exception) { }
+
+                        await default(ValueTask);
+                    });
                 }
+
             }
         }
 
@@ -88,8 +101,8 @@ namespace FileSnapshotUI.Pages {
             }
 
             RootViewModel.SelectedFile = FilesListView.SelectedItem as FileItem;
-            DeleteButton.IsEnabled = RootViewModel.SelectedFile != null;
-            CreateSnapshotButton.IsEnabled = RootViewModel.SelectedFile != null;
+            //DeleteButton.IsEnabled = RootViewModel.SelectedFile != null;
+            //CreateSnapshotButton.IsEnabled = RootViewModel.SelectedFile != null;
             LastBackupStringUI.Visibility = RootViewModel.SelectedFile != null ? Visibility.Visible : Visibility.Collapsed;
 
             if (RootViewModel.SelectedFile?.Snapshots != null) {
@@ -123,7 +136,7 @@ namespace FileSnapshotUI.Pages {
             var selected = RootViewModel.SelectedFile;
             if (selected != null) {
                 selected.AddSnapshot();
-                NotificationService.Instance.AddNotification(selected, "Created snapshot");
+                //NotificationService.Instance.AddNotification(selected, "Created snapshot");
             }
         }
 

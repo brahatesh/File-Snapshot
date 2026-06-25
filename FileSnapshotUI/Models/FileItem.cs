@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Runtime.CompilerServices;
 using FileSnapshotUI.Helpers;
+using LibGit2Sharp;
 
 namespace FileSnapshotUI.Models;
 
@@ -21,6 +22,7 @@ public partial class FileItem: INotifyPropertyChanged {
     private readonly string _defaultBackupPathRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileSnapshot");
     private bool _isDarkMode = false;
     private TimeSpan _snapshotIntervalDuration;
+    private bool _isProcessing;
 
     public ObservableCollection<SnapshotDetails> Snapshots { get; } = [];
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -40,6 +42,7 @@ public partial class FileItem: INotifyPropertyChanged {
             _backupPath = backupPath;
         }
         Directory.CreateDirectory(_backupPath);
+        Repository.Init(_backupPath);
 
         _snapshotIntervalDuration = TimeSpan.FromDays(1);
     }
@@ -52,6 +55,19 @@ public partial class FileItem: INotifyPropertyChanged {
             OnPropertyChanged(nameof(LastBackupString));
         }
     }
+
+    public bool IsProcessing {
+        get => _isProcessing;
+        set {
+            if(_isProcessing != value) {
+                _isProcessing = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotProcessing));
+            }
+        }
+    }
+
+    public bool IsNotProcessing => !IsProcessing;
 
     public string LastBackupString {
         get => _lastBackupUTC == DateTime.MinValue ? "Never" : LastBackup.ToString("G");
@@ -90,8 +106,12 @@ public partial class FileItem: INotifyPropertyChanged {
         }
     }
 
-    private enum _fileTypeEnum {Excel, Text, Word, Powerpoint, Other};
-    private _fileTypeEnum _fileType { get; set; }
+    public enum FileTypeEnum {Excel, Text, Word, Powerpoint, Other};
+    private FileTypeEnum _fileType { get; set; }
+
+    public FileTypeEnum FileType {
+        get => _fileType;
+    }
 
     public string FullPath { 
         get => _fullPath; 
@@ -116,23 +136,23 @@ public partial class FileItem: INotifyPropertyChanged {
     private void UpdateTypeAndIcon() {
         var ext = Path.GetExtension(FileName).ToLowerInvariant();
         _fileType = ext switch {
-            ".xlsx" or ".xls" => _fileTypeEnum.Excel,
-            ".docx" or ".doc" => _fileTypeEnum.Word,
-            ".pptx" or ".ppt" => _fileTypeEnum.Powerpoint,
-            ".txt" or ".md" => _fileTypeEnum.Text,
-            _ => _fileTypeEnum.Other
+            ".xlsx" or ".xls" => FileTypeEnum.Excel,
+            ".docx" or ".doc" => FileTypeEnum.Word,
+            ".pptx" or ".ppt" => FileTypeEnum.Powerpoint,
+            ".txt" or ".md" => FileTypeEnum.Text,
+            _ => FileTypeEnum.Other
         };
 
         IconGlyphPath = GetIconGlyphPathFromFileType(_fileType, _isDarkMode);
     }
 
-    private static string GetIconGlyphPathFromFileType(_fileTypeEnum fileType, bool isDarkMode) {
+    private static string GetIconGlyphPathFromFileType(FileTypeEnum fileType, bool isDarkMode) {
         string themeSuffix = isDarkMode ? "DarkMode" : "LightMode";
         var glyphPath = fileType switch {
-            _fileTypeEnum.Excel => "/Assets/ExcelLogo48x48.png",
-            _fileTypeEnum.Word => "/Assets/WordLogo48x48.png",
-            _fileTypeEnum.Powerpoint => "/Assets/PowerpointLogo48x48.png",
-            _fileTypeEnum.Text => $"/Assets/TextLogo{themeSuffix}48x48.png",
+            FileTypeEnum.Excel => "/Assets/ExcelLogo48x48.png",
+            FileTypeEnum.Word => "/Assets/WordLogo48x48.png",
+            FileTypeEnum.Powerpoint => "/Assets/PowerpointLogo48x48.png",
+            FileTypeEnum.Text => $"/Assets/TextLogo{themeSuffix}48x48.png",
             _ => $"/Assets/OtherLogo{themeSuffix}48x48.png"
         };
         return glyphPath;

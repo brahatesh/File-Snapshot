@@ -1,14 +1,16 @@
-﻿using Microsoft.UI;
+﻿using FileSnapshotUI.Helpers;
+using FileSnapshotUI.Services;
+using FileSnapshotUI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-using FileSnapshotUI.Helpers;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using FileSnapshotUI.Services;
+using System.Threading.Tasks;
 
 namespace FileSnapshotUI
 {
@@ -16,6 +18,9 @@ namespace FileSnapshotUI
     {
         public static Microsoft.UI.Dispatching.DispatcherQueue MainDispatcher { get; private set; }
         private static WindowHelper? windowHelper;
+
+        private readonly IHost _host;
+        public static IServiceProvider Services { get; private set; }
 
         [STAThread]
         public static void Main(string[] args)
@@ -29,11 +34,30 @@ namespace FileSnapshotUI
         public App()
         {
             this.InitializeComponent();
+
+            _host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) => {
+                    services.AddSingleton<NotificationService>();
+                    // Register the Queue as a Singleton so everyone shares it
+                    services.AddSingleton<BackgroundTaskQueue>();
+
+                    // Register RootViewModel as a Singleton so the UI and TimerService see the exact same list
+                    services.AddSingleton<RootViewModel>();
+
+                    // Register both background services
+                    services.AddHostedService<TaskProcessingService>();
+                    services.AddHostedService<SnapshotTimerService>();
+                })
+                .Build();
+
+            Services = _host.Services;
         }
 
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
-            MainDispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+            MainDispatcher = DispatcherQueue.GetForCurrentThread();
+
+            await _host.StartAsync();
 
             var window = new MainWindow();
             window.Activate();
@@ -42,6 +66,13 @@ namespace FileSnapshotUI
             windowHelper.SetWindowMinMaxSize(new WindowHelper.POINT() { x = 700, y = 500 });
 
             window.AppWindow.Hide();
+
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+        }
+
+        private async void CurrentDomain_ProcessExit(object? sender, EventArgs e) {
+            await _host.StopAsync(TimeSpan.FromSeconds(5));
+            _host.Dispose();
         }
     }
 }

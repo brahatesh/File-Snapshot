@@ -5,22 +5,16 @@ using System;
 namespace FileSnapshotUI.Services;
 
 public class NotificationService {
-    private static NotificationService? _instance;
-    private NotificationViewModel _viewModel;
+    //private static NotificationService? _instance;
+    public NotificationViewModel ViewModel { get; } = new();
 
-    private NotificationService() {
-        _viewModel = new NotificationViewModel();
-    }
-
-    public static NotificationService Instance => _instance ??= new NotificationService();
+    //public static NotificationService Instance => _instance ??= new NotificationService();
 
     public void AddNotification(FileItem fileItem, string message) {
-        _viewModel.AddNotification(fileItem, message);
+        ViewModel.AddNotification(fileItem, message);
     }
 
     public void RemoveNotification(Guid notificationId) {
-        _viewModel.RemoveNotification(notificationId);
+        ViewModel.RemoveNotification(notificationId);
     }
-
-    public NotificationViewModel ViewModel => _viewModel;
 }

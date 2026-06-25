@@ -24,7 +24,7 @@ public partial class RootViewModel : INotifyPropertyChanged {
                     _selectedFile.PropertyChanged += SelectedFile_PropertyChanged;
                 }
 
-                //OnPropertyChanged();
+                OnPropertyChanged();
                 OnPropertyChanged(nameof(SelectedFileLastBackup));
             }
         }

@@ -6,7 +6,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
 
 namespace FileSnapshotUI.Helpers {
-    public static class OpenFileDialogHelper {
+    public static class OpenDialogHelper {
         /// <summary>
         /// Opens a native Win32 File Open Dialog and returns the selected file path.
         /// Returns null if the user cancels or an error occurs.
@@ -64,6 +64,55 @@ namespace FileSnapshotUI.Helpers {
             }
 
             // Return null if cancelled or failed
+            return null;
+        }
+
+        public static unsafe string? PickSingleFolder(Window hostWindow) {
+            Guid clsid = typeof(FileOpenDialog).GUID;
+            Guid iid = typeof(IFileOpenDialog).GUID;
+
+            HRESULT hr = PInvoke.CoCreateInstance(
+                &clsid,
+                null,
+                Windows.Win32.System.Com.CLSCTX.CLSCTX_INPROC_SERVER,
+                &iid,
+                out object dialogObj);
+
+            if (hr.Failed) return null;
+
+            IFileOpenDialog dialog = (IFileOpenDialog)dialogObj;
+
+            try {
+                // Retrieve the default options of the dialog
+                dialog.GetOptions(out FILEOPENDIALOGOPTIONS options);
+
+                // Append the FOS_PICKFOLDERS flag using a bitwise OR, 
+                // which transforms the File Picker into a Folder Picker
+                dialog.SetOptions(options | FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS);
+
+                IntPtr hwndHandle = WinRT.Interop.WindowNative.GetWindowHandle(hostWindow);
+                HWND parentHwnd = new HWND(hwndHandle);
+
+                dialog.Show(parentHwnd);
+
+                dialog.GetResult(out IShellItem item);
+
+                if (item != null) {
+                    item.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out PWSTR pFolderPath);
+                    string selectedFolderPath = pFolderPath.ToString();
+                    PInvoke.CoTaskMemFree(pFolderPath);
+
+                    System.Diagnostics.Debug.WriteLine($"Selected Folder Path: {selectedFolderPath}");
+                    return selectedFolderPath;
+                }
+            }
+            catch (COMException comEx) when ((uint)comEx.HResult == 0x800704C7) {
+                System.Diagnostics.Debug.WriteLine("User closed or cancelled the folder dialog.");
+            }
+            catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine($"Folder dialog operational failure: {ex.Message}");
+            }
+
             return null;
         }
     }

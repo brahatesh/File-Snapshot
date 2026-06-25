@@ -29,7 +29,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock 
-                                Text="{Binding snapshotTimeString, Mode=OneWay}"
+                                Text="{Binding SnapshotTimeString, Mode=OneWay}"
                                 VerticalAlignment="Center" />
 
                             <Button

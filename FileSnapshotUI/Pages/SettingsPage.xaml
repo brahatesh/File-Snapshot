@@ -54,7 +54,8 @@
                                 Grid.Column="2"
                                 Click="SettingsEditFullPath_Click"
                                 Style="{StaticResource AccentButtonStyle}"
-                                VerticalAlignment="Center">
+                                VerticalAlignment="Center"
+                                IsEnabled="{x:Bind ViewModel.SelectedFile.IsNotProcessing, Mode=OneWay}">
                                 <FontIcon Glyph="&#xE70F;" />
                             </Button>
                         </Grid>
@@ -83,7 +84,8 @@
                                 Grid.Column="2"
                                 Click="SettingsEditBackupPath_Click"
                                 Style="{StaticResource AccentButtonStyle}"
-                                VerticalAlignment="Center">
+                                VerticalAlignment="Center"
+                                IsEnabled="{x:Bind ViewModel.SelectedFile.IsNotProcessing, Mode=OneWay}">
                                 <FontIcon Glyph="&#xE70F;" />
                             </Button>
                         </Grid>

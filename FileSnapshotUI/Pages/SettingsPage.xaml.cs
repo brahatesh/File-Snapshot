@@ -1,12 +1,17 @@
+using FileSnapshotUI.Helpers;
+using FileSnapshotUI.Services;
 using FileSnapshotUI.ViewModels;
+using LibGit2Sharp;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using SystemTray.Core;
-using FileSnapshotUI.Helpers;
-using System.IO;
-using System.Threading.Tasks;
 using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using SystemTray.Core;
+using Windows.Devices.Geolocation;
 
 namespace FileSnapshotUI.Pages
 {
@@ -15,10 +20,12 @@ namespace FileSnapshotUI.Pages
         public RootViewModel? ViewModel;
         private SystemTrayManager? systemTrayManager;
         private MainWindow? _hostWindow;
+        private NotificationService _notificationService;
 
         public SettingsPage()
         {
             this.InitializeComponent();
+            _notificationService = App.Services.GetRequiredService<NotificationService>();
         }
 
         public void SetManager(SystemTrayManager manager)
@@ -78,8 +85,19 @@ namespace FileSnapshotUI.Pages
 
         private async void SettingsEditFullPath_Click(object sender, RoutedEventArgs e) {
             if (_hostWindow == null || ViewModel == null || ViewModel.SelectedFile == null) return;
-            var newPath = OpenFileDialogHelper.PickSingleFile(_hostWindow);
+            var newPath = OpenDialogHelper.PickSingleFile(_hostWindow);
             if(newPath != null) {
+                if(Path.GetExtension(newPath) != Path.GetExtension(ViewModel.SelectedFile.FullPath)) {
+                    ContentDialog dialog = new() {
+                        XamlRoot = this.XamlRoot,
+                        Title = "File type mismatch",
+                        Content = $"The provided file type and the current file type are not the same.",
+                        CloseButtonText = "Okay"
+                    };
+
+                    await dialog.ShowAsync();
+                    return;
+                }
                 if(Path.GetFileName(newPath) != ViewModel.SelectedFile.FileName) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
@@ -97,8 +115,74 @@ namespace FileSnapshotUI.Pages
             }
         }
 
-        private void SettingsEditBackupPath_Click(object sender, RoutedEventArgs e) {
+        private async void SettingsEditBackupPath_Click(object sender, RoutedEventArgs e) {
+            if (ViewModel == null || ViewModel.SelectedFile == null || _hostWindow == null) return;
+            var newDir = OpenDialogHelper.PickSingleFolder(_hostWindow);
+            var oldDir = ViewModel.SelectedFile.BackupPath;
+            var file = ViewModel.SelectedFile;
 
+            if(newDir != null && newDir != oldDir) {
+                if(!FileOperationsHelper.CanReadFromDir(newDir) || !FileOperationsHelper.CanWriteToDir(newDir)) {
+                    ContentDialog dialog = new() {
+                        XamlRoot = this.XamlRoot,
+                        Title = "Cannot access Directory",
+                        Content = $"Cannot access {newDir}",
+                        CloseButtonText = "Okay"
+                    };
+
+                    await dialog.ShowAsync();
+                    return;
+                }
+
+                if(Repository.IsValid(newDir)) {
+                    ContentDialog dialog = new() {
+                        XamlRoot = this.XamlRoot,
+                        Title = "Directory cannot be used",
+                        Content = $"{newDir} is already a git repository. Provide another directory.",
+                        CloseButtonText = "Okay"
+                    };
+
+                    await dialog.ShowAsync();
+                    return;
+                }
+
+                file.IsProcessing = true;
+                file.BackupPath = newDir;
+
+                var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
+                queue.EnqueueTask(async (token) => {
+                    try {
+                        await FileOperationsHelper.CopyDirectoryAsync(oldDir, newDir, token);
+
+                        App.MainDispatcher.TryEnqueue(() => {
+                            _notificationService?.AddNotification(file, "Backup moved successfully");
+                        });
+
+                        try {
+                            await FileOperationsHelper.DeleteDirectoryASync(oldDir, CancellationToken.None);
+                        }
+                        catch (Exception) {}
+                    }
+                    catch (OperationCanceledException) {
+                        App.MainDispatcher.TryEnqueue(() => {
+                            file.BackupPath = oldDir;
+                        });
+                    }
+                    catch (Exception ex) {
+                        App.MainDispatcher.TryEnqueue(() => {
+                            file.BackupPath = oldDir;
+                            _notificationService.AddNotification(file, $"Unable to change backup directory: {ex.Message}");
+                        });
+                    }
+                    finally {
+                        App.MainDispatcher.TryEnqueue(() => {
+                            file.IsProcessing = false;
+                        });
+                    }
+
+                    await default(ValueTask);
+                });
+            }
         }
 
         private void SaveBackupDuration_Click(object sender, RoutedEventArgs e) {

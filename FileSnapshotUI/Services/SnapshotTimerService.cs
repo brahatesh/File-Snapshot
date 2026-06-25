@@ -1,0 +1,67 @@
+﻿using Microsoft.Extensions.Hosting;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using FileSnapshotUI.ViewModels;
+using FileSnapshotUI.Models;
+
+namespace FileSnapshotUI.Services
+{
+    public class SnapshotTimerService : BackgroundService
+    {
+        private readonly BackgroundTaskQueue _queue;
+        private readonly RootViewModel _viewModel;
+
+        public SnapshotTimerService(BackgroundTaskQueue queue, RootViewModel viewModel)
+        {
+            _queue = queue;
+            _viewModel = viewModel;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));
+
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                var now = DateTime.Now;
+                var tcs = new TaskCompletionSource<List<FileItem>>();
+                
+                // Safely read the UI collection
+                App.MainDispatcher.TryEnqueue(() =>
+                {
+                    var dueFiles = new List<FileItem>();
+                    foreach (var file in _viewModel.Files)
+                    {
+                        // Using your newly updated property name
+                        if (now - file.LastBackup >= file.SnapshotIntervalDuration)
+                        {
+                            dueFiles.Add(file);
+                        }
+                    }
+                    tcs.SetResult(dueFiles);
+                });
+
+                var dueFiles = await tcs.Task;
+
+                foreach (var file in dueFiles)
+                {
+                    // Here is the magic: We define the task block inline and queue it
+                    _queue.EnqueueTask(async (token) => 
+                    {
+                        // 1. DO HEAVY I/O HERE (Background Thread)
+                        // File.Copy(file.FullPath, Path.Combine(file.BackupPath, "snapshot.tmp"));
+
+                        // 2. UPDATE UI HERE (UI Thread)
+                        App.MainDispatcher.TryEnqueue(() => {
+                            file.AddSnapshot(); 
+                        });
+
+                        await default(ValueTask);
+                    });
+                }
+            }
+        }
+    }
+}
