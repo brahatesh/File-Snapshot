@@ -1,47 +1,39 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using FileSnapshotUI.Models;
+using FileSnapshotUI.ViewModels;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using FileSnapshotUI.ViewModels;
-using FileSnapshotUI.Models;
 
-namespace FileSnapshotUI.Services
-{
-    public class SnapshotTimerService : BackgroundService
-    {
+namespace FileSnapshotUI.Services {
+    public class SnapshotTimerService : BackgroundService {
         private readonly BackgroundTaskQueue _queue;
         private readonly RootViewModel _viewModel;
         private readonly SnapshotService _snapshotService;
 
         public SnapshotTimerService(
-            BackgroundTaskQueue queue, 
+            BackgroundTaskQueue queue,
             RootViewModel viewModel,
-            SnapshotService snapshotService)
-        {
+            SnapshotService snapshotService) {
             _queue = queue;
             _viewModel = viewModel;
             _snapshotService = snapshotService;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
             using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));
 
-            while (await timer.WaitForNextTickAsync(stoppingToken))
-            {
+            while (await timer.WaitForNextTickAsync(stoppingToken)) {
                 var now = DateTime.Now;
                 var tcs = new TaskCompletionSource<List<FileItem>>();
-                
+
                 // Safely read the UI collection
-                App.MainDispatcher.TryEnqueue(() =>
-                {
+                App.MainDispatcher.TryEnqueue(() => {
                     var dueFiles = new List<FileItem>();
-                    foreach (var file in _viewModel.Files)
-                    {
+                    foreach (var file in _viewModel.Files) {
                         // Using your newly updated property name
-                        if (now - file.LastBackup >= file.SnapshotIntervalDuration)
-                        {
+                        if (now - file.LastBackup >= file.SnapshotIntervalDuration) {
                             dueFiles.Add(file);
                         }
                     }
@@ -50,11 +42,9 @@ namespace FileSnapshotUI.Services
 
                 var dueFiles = await tcs.Task;
 
-                foreach (var file in dueFiles)
-                {
+                foreach (var file in dueFiles) {
                     // Here is the magic: We define the task block inline and queue it
-                    _queue.EnqueueTask(async (token) => 
-                    {
+                    _queue.EnqueueTask(async (token) => {
                         // 1. DO HEAVY I/O HERE (Background Thread)
                         // File.Copy(file.FullPath, Path.Combine(file.BackupPath, "snapshot.tmp"));
                         await _snapshotService.PerformSnapshotAsync(file, token);

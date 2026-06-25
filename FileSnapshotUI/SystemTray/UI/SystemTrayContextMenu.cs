@@ -13,16 +13,13 @@ using SystemTray.Models;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace SystemTray.UI
-{
-    class SystemTrayContextMenu : IDisposable
-    {
+namespace SystemTray.UI {
+    class SystemTrayContextMenu : IDisposable {
         private SafeMenuHandle handle;
 
         private readonly List<MenuItem> items = new();
 
-        public SystemTrayContextMenu()
-        {
+        public SystemTrayContextMenu() {
             handle = new SafeMenuHandle(CreatePopupMenu(), true);
         }
 
@@ -30,12 +27,10 @@ namespace SystemTray.UI
 
         public int Count => items.Count;
 
-        public void Show(HWND hWnd, int x, int y)
-        {
+        public void Show(HWND hWnd, int x, int y) {
             var activeWindow = GetForegroundWindow();
             SetForegroundWindow(hWnd);
-            try
-            {
+            try {
                 var command = TrackPopupMenuEx(
                     handle,
                     TPM_RETURNCMD | TPM_NONOTIFY,
@@ -49,16 +44,13 @@ namespace SystemTray.UI
                 var item = items.FirstOrDefault(i => i.Id == (uint)command);
                 item?.PerformClick();
             }
-            finally
-            {
+            finally {
                 SetForegroundWindow(activeWindow);
             }
         }
 
-        public SystemTrayContextMenuItem AddMenuItem(string text)
-        {
-            var item = new MenuItem(this)
-            {
+        public SystemTrayContextMenuItem AddMenuItem(string text) {
+            var item = new MenuItem(this) {
                 Text = text
             };
 
@@ -73,13 +65,11 @@ namespace SystemTray.UI
             return item;
         }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             handle?.Dispose();
         }
 
-        private void UpdateMenuItem(MenuItem item)
-        {
+        private void UpdateMenuItem(MenuItem item) {
             var flags = MF_STRING;
             if (item.Text == "--") flags |= MF_SEPARATOR;
             if (!item.IsEnabled) flags |= MF_DISABLED;
@@ -87,15 +77,13 @@ namespace SystemTray.UI
             ModifyMenu(handle, item.Id, flags, item.Id, item.Text);
         }
 
-        sealed class MenuItem : SystemTrayContextMenuItem
-        {
+        sealed class MenuItem : SystemTrayContextMenuItem {
             private static uint idCount = 100;
             private SystemTrayContextMenu menu;
             private string text = string.Empty;
             private bool isEnabled = true;
 
-            public MenuItem(SystemTrayContextMenu menu)
-            {
+            public MenuItem(SystemTrayContextMenu menu) {
                 ArgumentNullException.ThrowIfNull(menu);
                 this.menu = menu;
                 Id = ++idCount;
@@ -103,30 +91,25 @@ namespace SystemTray.UI
 
             public uint Id { get; }
 
-            public override string Text
-            {
+            public override string Text {
                 get => text;
-                set
-                {
+                set {
                     if (text == value) return;
                     text = value ?? string.Empty;
                     menu.UpdateMenuItem(this);
                 }
             }
 
-            public override bool IsEnabled
-            {
+            public override bool IsEnabled {
                 get => isEnabled;
-                set
-                {
+                set {
                     if (isEnabled == value) return;
                     isEnabled = value;
                     menu.UpdateMenuItem(this);
                 }
             }
 
-            public void PerformClick()
-            {
+            public void PerformClick() {
                 Click?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -136,8 +119,7 @@ namespace SystemTray.UI
         [StructLayout(LayoutKind.Sequential)]
         public struct HWND { public nint Value; public HWND(nint value) => Value = value; public static implicit operator nint(HWND h) => h.Value; public static implicit operator HWND(nint h) => new HWND(h); }
 
-        private sealed class SafeMenuHandle : SafeHandle
-        {
+        private sealed class SafeMenuHandle : SafeHandle {
             public SafeMenuHandle(nint handle, bool ownsHandle) : base(nint.Zero, ownsHandle) => SetHandle(handle);
             public override bool IsInvalid => handle == nint.Zero;
             protected override bool ReleaseHandle() => DestroyMenu(handle);

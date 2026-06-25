@@ -14,10 +14,8 @@ using Windows.Foundation;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace SystemTray.UI
-{
-    internal class SystemTrayIcon : IDisposable
-    {
+namespace SystemTray.UI {
+    internal class SystemTrayIcon : IDisposable {
         private const int WM_LBUTTONUP = 0x0202;
         private const int WM_RBUTTONUP = 0x0205;
         private const int WM_CONTEXTMENU = 0x007B;
@@ -31,8 +29,7 @@ namespace SystemTray.UI
         private IIconFile? icon;
         private bool keepIconAlive;
 
-        public SystemTrayIcon(WindowHelper windowHelper, bool keepIconAlive = false)
-        {
+        public SystemTrayIcon(WindowHelper windowHelper, bool keepIconAlive = false) {
             ArgumentNullException.ThrowIfNull(windowHelper);
 
             this.windowHelper = windowHelper;
@@ -49,22 +46,18 @@ namespace SystemTray.UI
 
         public Guid Id { get; init; }
 
-        public string Text
-        {
+        public string Text {
             get => text ?? string.Empty;
-            set
-            {
+            set {
                 if (text == value) return;
                 text = value;
                 Update();
             }
         }
 
-        public IIconFile? Icon
-        {
+        public IIconFile? Icon {
             get => icon;
-            set
-            {
+            set {
                 if (icon != null && !keepIconAlive)
                     icon.Dispose();
 
@@ -78,33 +71,27 @@ namespace SystemTray.UI
         public event EventHandler<SystemTrayEventArgs>? LeftClick;
         public event EventHandler<SystemTrayEventArgs>? RightClick;
 
-        public void Show()
-        {
+        public void Show() {
             var data = GetData();
             if (Shell_NotifyIcon(NIM_ADD, ref data))
                 IsVisible = true;
         }
 
-        public void Hide()
-        {
+        public void Hide() {
             var data = GetData();
             if (Shell_NotifyIcon(NIM_DELETE, ref data))
                 IsVisible = false;
         }
 
-        private void Update()
-        {
-            if (IsVisible)
-            {
+        private void Update() {
+            if (IsVisible) {
                 var data = GetData();
                 Shell_NotifyIcon(NIM_MODIFY, ref data);
             }
         }
 
-        private unsafe NOTIFYICONDATAW GetData()
-        {
-            var data = new NOTIFYICONDATAW
-            {
+        private unsafe NOTIFYICONDATAW GetData() {
+            var data = new NOTIFYICONDATAW {
                 cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATAW>(),
                 hWnd = windowHelper.Handle,
                 uID = 0,
@@ -121,23 +108,19 @@ namespace SystemTray.UI
         private void OnLeftClick(SystemTrayEventArgs e) => LeftClick?.Invoke(this, e);
         private void OnRightClick(SystemTrayEventArgs e) => RightClick?.Invoke(this, e);
 
-        private void Dispose(bool disposing)
-        {
+        private void Dispose(bool disposing) {
             Hide();
             if (icon != null && !keepIconAlive)
                 icon.Dispose();
         }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        private void ProcessMessage(uint messageId, nuint wParam, nint lParam)
-        {
-            if (messageId == WM_TASKBARCREATED)
-            {
+        private void ProcessMessage(uint messageId, nuint wParam, nint lParam) {
+            if (messageId == WM_TASKBARCREATED) {
                 Show();
                 return;
             }
@@ -145,8 +128,7 @@ namespace SystemTray.UI
             if (messageId != MESSAGE_ID)
                 return;
 
-            switch ((int)lParam)
-            {
+            switch ((int)lParam) {
                 case WM_LBUTTONUP:
                     OnLeftClick(new SystemTrayEventArgs { Rect = GetIconRectangle() });
                     break;
@@ -161,8 +143,7 @@ namespace SystemTray.UI
             }
         }
 
-        private void ShowContextMenu()
-        {
+        private void ShowContextMenu() {
             var rect = GetIconRectangle();
             ContextMenu.Show(
                 windowHelper.Handle,
@@ -170,10 +151,8 @@ namespace SystemTray.UI
                 (int)(rect.Top + rect.Bottom) / 2);
         }
 
-        private Rect GetIconRectangle()
-        {
-            var systemTray = new NOTIFYICONIDENTIFIER
-            {
+        private Rect GetIconRectangle() {
+            var systemTray = new NOTIFYICONIDENTIFIER {
                 cbSize = (uint)Marshal.SizeOf<NOTIFYICONIDENTIFIER>(),
                 hWnd = windowHelper.Handle,
                 guidItem = Id
@@ -205,8 +184,7 @@ namespace SystemTray.UI
         private static extern int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private struct NOTIFYICONDATAW
-        {
+        private struct NOTIFYICONDATAW {
             public uint cbSize;
             public nint hWnd;
             public uint uID;
@@ -231,8 +209,7 @@ namespace SystemTray.UI
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct NOTIFYICONIDENTIFIER
-        {
+        private struct NOTIFYICONIDENTIFIER {
             public uint cbSize;
             public nint hWnd;
             public uint uID;
@@ -240,8 +217,7 @@ namespace SystemTray.UI
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
+        private struct RECT {
             public int left;
             public int top;
             public int right;

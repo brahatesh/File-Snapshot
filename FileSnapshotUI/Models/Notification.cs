@@ -1,5 +1,4 @@
 ﻿using System;
-using Windows.Web.AtomPub;
 
 namespace FileSnapshotUI.Models;
 
@@ -14,7 +13,7 @@ public class Notification {
     public string Message { get; set; } = string.Empty;
     public DateTime CreatedAt { get; }
 
-    public DateTime CreatedAtLocal { 
+    public DateTime CreatedAtLocal {
         get {
             return CreatedAt.ToLocalTime();
         }

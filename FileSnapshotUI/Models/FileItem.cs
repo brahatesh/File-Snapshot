@@ -1,19 +1,16 @@
-﻿using Microsoft.UI;
-using Microsoft.UI.Xaml.Media;
+﻿using FileSnapshotUI.Helpers;
+using LibGit2Sharp;
+using Microsoft.UI;
 //using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.Storage;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Runtime.CompilerServices;
-using FileSnapshotUI.Helpers;
-using LibGit2Sharp;
 
 namespace FileSnapshotUI.Models;
 
-public partial class FileItem: INotifyPropertyChanged {
+public partial class FileItem : INotifyPropertyChanged {
     private string _fileName = string.Empty;
     private string _fullPath = string.Empty;
     private readonly Guid _id;
@@ -59,7 +56,7 @@ public partial class FileItem: INotifyPropertyChanged {
     public bool IsProcessing {
         get => _isProcessing;
         set {
-            if(_isProcessing != value) {
+            if (_isProcessing != value) {
                 _isProcessing = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsNotProcessing));
@@ -91,38 +88,38 @@ public partial class FileItem: INotifyPropertyChanged {
         get => _id;
     }
 
-    public string FileName { 
-        get => _fileName; 
+    public string FileName {
+        get => _fileName;
     }
 
     private string _iconGlyphPath { get; set; } = "/Assets/OtherLogoLightMode48x48.png";
     public string IconGlyphPath {
         get => _iconGlyphPath;
         private set {
-            if(_iconGlyphPath != value) {
+            if (_iconGlyphPath != value) {
                 _iconGlyphPath = value;
                 OnPropertyChanged();
             }
         }
     }
 
-    public enum FileTypeEnum {Excel, Text, Word, Powerpoint, Other};
+    public enum FileTypeEnum { Excel, Text, Word, Powerpoint, Other };
     private FileTypeEnum _fileType { get; set; }
 
     public FileTypeEnum FileType {
         get => _fileType;
     }
 
-    public string FullPath { 
-        get => _fullPath; 
-        set { 
+    public string FullPath {
+        get => _fullPath;
+        set {
             _fullPath = value ?? string.Empty;
             _fileName = Path.GetFileName(_fullPath);
             UpdateTypeAndIcon();
 
             OnPropertyChanged();
             OnPropertyChanged(nameof(FileName));
-        } 
+        }
     }
 
     public string BackupPath {
@@ -132,7 +129,7 @@ public partial class FileItem: INotifyPropertyChanged {
             OnPropertyChanged();
         }
     }
-    
+
     private void UpdateTypeAndIcon() {
         var ext = Path.GetExtension(FileName).ToLowerInvariant();
         _fileType = ext switch {
@@ -159,7 +156,7 @@ public partial class FileItem: INotifyPropertyChanged {
     }
 
     public void AddSnapshot(DateTime snapshotTime, Commit commit) {
-        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime,commit));
+        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime, commit));
         LastBackup = snapshotTime;
     }
 
@@ -169,7 +166,7 @@ public partial class FileItem: INotifyPropertyChanged {
     }
 
     public void UpdateTheme(bool isDarkMode) {
-        if(_isDarkMode != isDarkMode) {
+        if (_isDarkMode != isDarkMode) {
             _isDarkMode = isDarkMode;
             UpdateTypeAndIcon();
         }

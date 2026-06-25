@@ -3,40 +3,30 @@ using FileSnapshotUI.Pages;
 using FileSnapshotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.Windows.AppNotifications;
-using System;
-using System.ComponentModel.Design;
 using SystemTray.Core;
-using SystemTray.UI;
 using Windows.UI.ViewManagement;
 
 
-namespace FileSnapshotUI
-{
+namespace FileSnapshotUI {
     public enum DrawerContent {
         Settings,
         Notifications
     }
-    public partial class MainWindow : Window
-    {
+    public partial class MainWindow : Window {
         public RootViewModel ViewModel { get; } = App.Services.GetRequiredService<RootViewModel>();
         public SystemTrayManager systemTrayManager;
         private bool _isDrawerOpen;
         private readonly UISettings _uiSettings;
 
-        public MainWindow()
-        {
+        public MainWindow() {
             var helper = new WindowHelper(this) { IsForceHidden = true };
-            
+
             this.InitializeComponent();
-            
-            systemTrayManager = new SystemTrayManager(helper)
-            {
+
+            systemTrayManager = new SystemTrayManager(helper) {
                 IsIconVisible = true,
                 IconToolTip = "File Snapshot",
                 MinimizeToTray = true,
@@ -47,7 +37,7 @@ namespace FileSnapshotUI
             Closed += (sender, args) => AppNotificationManager.Default.Unregister();
 
             _uiSettings = new UISettings();
-            _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;    
+            _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
 
             RootFrame.Navigate(typeof(Pages.RootPage), this);
 
@@ -149,7 +139,7 @@ namespace FileSnapshotUI
         public void SelectFile(FileItem item) {
             CloseDrawer();
 
-            if(RootFrame.Content is RootPage rootPage) {
+            if (RootFrame.Content is RootPage rootPage) {
                 rootPage.SelectFile(item);
             }
         }

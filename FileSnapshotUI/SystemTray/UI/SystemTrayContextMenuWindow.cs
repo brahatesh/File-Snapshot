@@ -2,12 +2,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using System.Windows.Input;
-using System.Runtime.InteropServices;
-using Windows.Foundation;
-using SystemTray.Core;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Windows.Input;
+using SystemTray.Core;
+using Windows.Foundation;
 
 // -----------------------------------------------------------------------------
 // SystemTray for WinUI 3
@@ -18,10 +18,8 @@ using System.Collections.Generic;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace SystemTray.UI
-{
-    internal class SystemTrayContextMenuWindow
-    {
+namespace SystemTray.UI {
+    internal class SystemTrayContextMenuWindow {
         private const uint WM_WININICHANGE = 0x001A;
         private const uint SPI_GETWORKAREA = 0x0030;
         private const uint SWP_NOMOVE = 0x0002;
@@ -32,11 +30,9 @@ namespace SystemTray.UI
         private Window window;
         private WindowHelper helper;
 
-        public SystemTrayContextMenuWindow(params Item[] menuItems)
-        {
+        public SystemTrayContextMenuWindow(params Item[] menuItems) {
             window = new Window();
-            window.Content = new ItemsControl()
-            {
+            window.Content = new ItemsControl() {
                 IsTabStop = false,
                 MinWidth = 125,
                 Margin = new Thickness(4, 4, 4, 4)
@@ -64,21 +60,18 @@ namespace SystemTray.UI
             UpdateTheme(ShouldSystemUseDarkMode());
         }
 
-        public void Show(int x, int y)
-        {
+        public void Show(int x, int y) {
             var hWnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(window));
 
             var workArea = GetPrimaryWorkArea();
 
             var scale = GetDpiForWindow(hWnd) / 96f;
 
-            if (window.Content is FrameworkElement root)
-            {
+            if (window.Content is FrameworkElement root) {
                 root.UpdateLayout();
                 root.Measure(new Size(workArea.Width, workArea.Height));
             }
-            else
-            {
+            else {
                 return;
             }
 
@@ -88,8 +81,7 @@ namespace SystemTray.UI
 
             var size = window.AppWindow?.Size;
 
-            window.AppWindow?.Move(new Windows.Graphics.PointInt32
-            {
+            window.AppWindow?.Move(new Windows.Graphics.PointInt32 {
                 X = (x + size?.Width < workArea.Width ? x : x - size?.Width) ?? x,
                 Y = y - size?.Height ?? y
             });
@@ -99,67 +91,53 @@ namespace SystemTray.UI
             ShowWindow(hWnd, SW_SHOW);
         }
 
-        public void UpdateItems(IEnumerable<Item> menuItems)
-        {
+        public void UpdateItems(IEnumerable<Item> menuItems) {
             if (window.Content is not ItemsControl itemsControl) return;
 
             itemsControl.Items.Clear();
             SetItems(itemsControl, menuItems);
         }
 
-        public void SetFlowDirection(bool isRtl)
-        {
-            if (window.Content is FrameworkElement element)
-            {
+        public void SetFlowDirection(bool isRtl) {
+            if (window.Content is FrameworkElement element) {
                 element.FlowDirection = isRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
             }
         }
 
-        private void ProcessMessage(uint messageId, nuint wParam, nint lParam)
-        {
-            if (messageId == WM_WININICHANGE && Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
-            {
+        private void ProcessMessage(uint messageId, nuint wParam, nint lParam) {
+            if (messageId == WM_WININICHANGE && Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet") {
                 UpdateTheme(ShouldSystemUseDarkMode());
             }
         }
 
-        private void OnWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
-        {
+        private void OnWindowClosing(AppWindow sender, AppWindowClosingEventArgs args) {
             args.Cancel = true;
             window.AppWindow.Hide();
             IsVisible = false;
         }
 
-        private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
-        {
-            if (args.WindowActivationState != WindowActivationState.Deactivated)
-            {
+        private void OnWindowActivated(object sender, WindowActivatedEventArgs args) {
+            if (args.WindowActivationState != WindowActivationState.Deactivated) {
                 return;
             }
 
             window.AppWindow.Hide();
         }
 
-        private void SetItems(ItemsControl itemsControl, IEnumerable<Item> menuItems)
-        {
-            foreach (var menuItem in menuItems)
-            {
+        private void SetItems(ItemsControl itemsControl, IEnumerable<Item> menuItems) {
+            foreach (var menuItem in menuItems) {
                 itemsControl.Items.Add(CreateMenuItem(menuItem));
             }
         }
 
-        private MenuFlyoutItemBase CreateMenuItem(Item menuItem)
-        {
-            if (menuItem.Text == "--")
-            {
+        private MenuFlyoutItemBase CreateMenuItem(Item menuItem) {
+            if (menuItem.Text == "--") {
                 var separator = new MenuFlyoutSeparator();
                 separator.IsTabStop = false;
                 return separator;
             }
-            else
-            {
-                var flyoutMenuItem = new MenuFlyoutItem
-                {
+            else {
+                var flyoutMenuItem = new MenuFlyoutItem {
                     Padding = new Thickness(12, 6, 12, 6),
                     DataContext = menuItem,
                     Text = menuItem.Text,
@@ -173,15 +151,13 @@ namespace SystemTray.UI
             }
         }
 
-        private void OnPreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
-        {
+        private void OnPreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e) {
             if (window.Content is not ItemsControl itemsControl) return;
 
             var index = itemsControl.Items.IndexOf(sender);
             if (index < 0) return;
 
-            var direction = e.Key switch
-            {
+            var direction = e.Key switch {
                 Windows.System.VirtualKey.Up => -1,
                 Windows.System.VirtualKey.Down => +1,
                 _ => 0
@@ -189,49 +165,41 @@ namespace SystemTray.UI
 
             if (direction == 0) return;
 
-            while (index + direction >= 0 && index + direction < itemsControl.Items.Count)
-            {
+            while (index + direction >= 0 && index + direction < itemsControl.Items.Count) {
                 index += direction;
-                if (itemsControl.Items[index] is MenuFlyoutItem item && item.Visibility == Visibility.Visible)
-                {
+                if (itemsControl.Items[index] is MenuFlyoutItem item && item.Visibility == Visibility.Visible) {
                     item.Focus(FocusState.Programmatic);
                     return;
                 }
             }
         }
 
-        private void OnItemClick(object sender, RoutedEventArgs e)
-        {
+        private void OnItemClick(object sender, RoutedEventArgs e) {
             window.AppWindow.Hide();
             IsVisible = false;
 
-            MenuClosed?.Invoke(this, EventArgs.Empty); 
+            MenuClosed?.Invoke(this, EventArgs.Empty);
 
-            if (sender is MenuFlyoutItem x && x.DataContext is Item menuItem)
-            {
+            if (sender is MenuFlyoutItem x && x.DataContext is Item menuItem) {
                 menuItem.Command?.Execute(null);
             }
         }
 
-        private void SetWindowStyle(HWND hWnd, WindowStyle style)
-        {
+        private void SetWindowStyle(HWND hWnd, WindowStyle style) {
             SetWindowLongPtr(hWnd, GWL_STYLE, (nint)style);
         }
 
-        private void AddWindowStyleEx(HWND hWnd, WindowStyleEx style)
-        {
+        private void AddWindowStyleEx(HWND hWnd, WindowStyleEx style) {
             var current = GetWindowLongPtr(hWnd, GWL_EXSTYLE);
             SetWindowLongPtr(hWnd, GWL_EXSTYLE, current | (nint)style);
         }
 
-        private static void SetTopMost(HWND hWnd)
-        {
+        private static void SetTopMost(HWND hWnd) {
             const int HWND_TOPMOST = -1;
             SetWindowPos(hWnd, new HWND(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
 
-        private static unsafe void UseRoundCorners(HWND hWnd)
-        {
+        private static unsafe void UseRoundCorners(HWND hWnd) {
             const uint DWMWCP_ROUND = 2;
             uint cornerPreference = DWMWCP_ROUND;
 
@@ -239,23 +207,20 @@ namespace SystemTray.UI
             if (result != 0) throw Marshal.GetExceptionForHR(result) ?? new ApplicationException("Can't switch dark mode setting");
         }
 
-        private unsafe void UpdateTheme(bool isDarkTheme)
-        {
+        private unsafe void UpdateTheme(bool isDarkTheme) {
             int isDark = isDarkTheme ? 1 : 0;
             var hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(window));
 
             DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, new nint(&isDark), sizeof(int));
 
-            if (window.Content is FrameworkElement element)
-            {
+            if (window.Content is FrameworkElement element) {
                 element.RequestedTheme = isDarkTheme ? ElementTheme.Dark : ElementTheme.Light;
             }
         }
 
         public sealed record Item(string Text, ICommand? Command);
 
-        static unsafe Rect GetPrimaryWorkArea()
-        {
+        static unsafe Rect GetPrimaryWorkArea() {
             RECT rect = new RECT();
             SystemParametersInfo(SPI_GETWORKAREA, 0, new nint(&rect), 0);
             return new Rect(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);

@@ -14,10 +14,8 @@ using WinRT.Interop;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace SystemTray.Core
-{
-    public class WindowHelper : IDisposable
-    {
+namespace SystemTray.Core {
+    public class WindowHelper : IDisposable {
         private readonly Window window;
         public Window Window => window;
         private readonly WndProc windowProc, nativeWindowProc;
@@ -28,8 +26,7 @@ namespace SystemTray.Core
 
         public event Action? CloseButtonPressed;
 
-        public WindowHelper(Window window)
-        {
+        public WindowHelper(Window window) {
             ArgumentNullException.ThrowIfNull(window);
             this.window = window;
 
@@ -48,8 +45,7 @@ namespace SystemTray.Core
 
         private const int SW_RESTORE = 9;
 
-        public void ShowWindowFromTray()
-        {
+        public void ShowWindowFromTray() {
             IsForceHidden = false;
 
             var appWindow = this.AppWindow;
@@ -62,8 +58,7 @@ namespace SystemTray.Core
             SetForegroundWindow(hwnd);
         }
 
-        public void HideWindowToTray()
-        {
+        public void HideWindowToTray() {
             var appWindow = this.AppWindow;
             if (appWindow == null) return;
 
@@ -74,10 +69,8 @@ namespace SystemTray.Core
 
         public nint Handle => new HWND(WindowNative.GetWindowHandle(window));
 
-        public AppWindow AppWindow
-        {
-            get
-            {
+        public AppWindow AppWindow {
+            get {
                 var hwnd = WindowNative.GetWindowHandle(window);
                 var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
                 return AppWindow.GetFromWindowId(windowId);
@@ -88,16 +81,13 @@ namespace SystemTray.Core
 
         public event Action<uint, nuint, nint>? Message;
 
-        public void Dispose()
-        {
+        public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
-        {
-            if (!IsDisposed)
-            {
+        private void Dispose(bool disposing) {
+            if (!IsDisposed) {
                 SetWindowLongPtr(new HWND(WindowNative.GetWindowHandle(window)),
                                  GWL_WNDPROC,
                                  Marshal.GetFunctionPointerForDelegate(nativeWindowProc));
@@ -105,20 +95,17 @@ namespace SystemTray.Core
             }
         }
 
-        private nint WindowProc(nint hWnd, uint msg, nint wParam, nint lParam)
-        {
-            if (msg==WM_WINDOWPOSCHANGING && IsForceHidden) {
+        private nint WindowProc(nint hWnd, uint msg, nint wParam, nint lParam) {
+            if (msg == WM_WINDOWPOSCHANGING && IsForceHidden) {
                 var windowPos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
-                if((windowPos.flags & SWP_SHOWWINDOW) != 0) {
+                if ((windowPos.flags & SWP_SHOWWINDOW) != 0) {
                     windowPos.flags &= ~SWP_SHOWWINDOW;
                     Marshal.StructureToPtr(windowPos, lParam, false);
                 }
             }
 
-            if (msg == WM_CLOSE)
-            {
-                if (CloseButtonMinimizesToTray)
-                {
+            if (msg == WM_CLOSE) {
+                if (CloseButtonMinimizesToTray) {
                     AppWindow?.Hide();
                     CloseButtonPressed?.Invoke();
                     return 0;
@@ -155,8 +142,7 @@ namespace SystemTray.Core
         private delegate nint WndProc(nint hWnd, uint msg, nint wParam, nint lParam);
 
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct HWND
-        {
+        public readonly struct HWND {
             public readonly nint Value;
             public HWND(nint value) => Value = value;
             public static implicit operator nint(HWND h) => h.Value;

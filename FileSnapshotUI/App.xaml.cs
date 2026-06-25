@@ -3,20 +3,13 @@ using FileSnapshotUI.Services;
 using FileSnapshotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.UI;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Windows.AppNotifications;
+using System;
 
-namespace FileSnapshotUI
-{
-    public partial class App : Application
-    {
+namespace FileSnapshotUI {
+    public partial class App : Application {
         public static Microsoft.UI.Dispatching.DispatcherQueue MainDispatcher { get; private set; }
         private static WindowHelper? windowHelper;
 
@@ -24,16 +17,13 @@ namespace FileSnapshotUI
         public static IServiceProvider Services { get; private set; }
 
         [STAThread]
-        public static void Main(string[] args)
-        {
-            Application.Start((p) =>
-            {
+        public static void Main(string[] args) {
+            Application.Start((p) => {
                 var app = new App();
             });
         }
 
-        public App()
-        {
+        public App() {
             this.InitializeComponent();
 
             AppNotificationManager.Default.Register();
@@ -54,8 +44,7 @@ namespace FileSnapshotUI
             Services = _host.Services;
         }
 
-        protected override async void OnLaunched(LaunchActivatedEventArgs args)
-        {
+        protected override async void OnLaunched(LaunchActivatedEventArgs args) {
             MainDispatcher = DispatcherQueue.GetForCurrentThread();
 
             await _host.StartAsync();

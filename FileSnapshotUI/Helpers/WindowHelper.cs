@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Composition.Interactions;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using System;
 using System.Runtime.InteropServices;
 
@@ -31,7 +30,7 @@ internal class WindowHelper {
         public POINT ptMaxTrackSize;
     }
 
-internal struct POINT {
+    internal struct POINT {
         public int x;
         public int y;
     }
@@ -51,7 +50,7 @@ internal struct POINT {
 
     private static nint GetWindowHandleForCurrentWindow(object target) => WinRT.Interop.WindowNative.GetWindowHandle(target);
 
-    public void SetWindowMinMaxSize(POINT? minWindowSize = null, POINT? maxWindowSize = null) { 
+    public void SetWindowMinMaxSize(POINT? minWindowSize = null, POINT? maxWindowSize = null) {
         this.minWindowSize = minWindowSize;
         this.maxWindowSize = maxWindowSize;
 
@@ -60,19 +59,19 @@ internal struct POINT {
         newWndProc = new WinProc(WndProc);
         oldWndProc = SetWindowLongPtr64(hwnd, WindowLongIndexFlags.GWL_WNDPROC, newWndProc);
     }
-    
-    private nint WndProc(nint hWnd, WindowMessage Msg, nint wParam, IntPtr lParam) { 
-        switch(Msg) {
+
+    private nint WndProc(nint hWnd, WindowMessage Msg, nint wParam, IntPtr lParam) {
+        switch (Msg) {
             case WindowMessage.WM_GETMINMAXINFO:
                 var dpi = GetDpiForWindow(hWnd);
                 var scalingFactor = (float)dpi / 96;
 
                 var minMaxInfo = Marshal.PtrToStructure<MINMAXINFO>(lParam);
-                if(minWindowSize != null) {
+                if (minWindowSize != null) {
                     minMaxInfo.ptMinTrackSize.x = (int)(minWindowSize.Value.x * scalingFactor);
                     minMaxInfo.ptMinTrackSize.y = (int)(minWindowSize.Value.y * scalingFactor);
                 }
-                if(maxWindowSize != null) {
+                if (maxWindowSize != null) {
                     minMaxInfo.ptMaxTrackSize.x = (int)(maxWindowSize.Value.x * scalingFactor);
                     minMaxInfo.ptMaxTrackSize.y = (int)(maxWindowSize.Value.y * scalingFactor);
                 }

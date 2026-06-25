@@ -9,10 +9,8 @@
 
 using System;
 
-namespace SystemTray.Models
-{
-    abstract class SystemTrayContextMenuItem
-    {
+namespace SystemTray.Models {
+    abstract class SystemTrayContextMenuItem {
         public abstract string Text { get; set; }
 
         public abstract bool IsEnabled { get; set; }

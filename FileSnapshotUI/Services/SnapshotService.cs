@@ -1,12 +1,11 @@
 ﻿using FileSnapshotUI.Helpers;
 using FileSnapshotUI.Models;
-using Microsoft.Extensions.Hosting;
+using LibGit2Sharp;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO.Compression;
-using LibGit2Sharp;
 
 namespace FileSnapshotUI.Services;
 
@@ -78,7 +77,7 @@ public class SnapshotService {
 
             App.MainDispatcher.TryEnqueue(() => file.AddSnapshot(snapshotTime, commit));
         }
-        catch(Exception ex) {
+        catch (Exception ex) {
             App.MainDispatcher.TryEnqueue(() => _notifications.AddNotification(file, $"Snapshot failed: {ex.Message}"));
         }
 

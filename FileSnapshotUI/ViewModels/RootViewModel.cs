@@ -27,14 +27,14 @@ public partial class RootViewModel : INotifyPropertyChanged {
     public FileItem? SelectedFile {
         get => _selectedFile;
         set {
-            if(_selectedFile != value) {
-                if(_selectedFile != null) {
+            if (_selectedFile != value) {
+                if (_selectedFile != null) {
                     _selectedFile.PropertyChanged -= SelectedFile_PropertyChanged;
                 }
 
                 _selectedFile = value;
 
-                if(_selectedFile != null) {
+                if (_selectedFile != null) {
                     _selectedFile.PropertyChanged += SelectedFile_PropertyChanged;
                 }
 
@@ -54,7 +54,7 @@ public partial class RootViewModel : INotifyPropertyChanged {
     }
 
     private void Notifications_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-        if(e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && e.NewItems != null) {
+        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && e.NewItems != null) {
             App.MainDispatcher.TryEnqueue(() => {
                 UnreadCount += e.NewItems.Count;
             });
@@ -62,7 +62,7 @@ public partial class RootViewModel : INotifyPropertyChanged {
     }
 
     private void SelectedFile_PropertyChanged(object? sender, PropertyChangedEventArgs e) {
-        if(e.PropertyName == nameof(FileItem.LastBackupString)) {
+        if (e.PropertyName == nameof(FileItem.LastBackupString)) {
             OnPropertyChanged(nameof(SelectedFileLastBackup));
         }
     }

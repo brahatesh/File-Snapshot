@@ -1,31 +1,15 @@
-using FileSnapshotUI.Models;
-using FileSnapshotUI.Pages;
-using FileSnapshotUI.ViewModels;
 using FileSnapshotUI.Helpers;
+using FileSnapshotUI.Models;
+using FileSnapshotUI.Services;
+using FileSnapshotUI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.UI.Shell;
-using FileSnapshotUI.Services;
-using System.Security;
-using Microsoft.Extensions.DependencyInjection;
 //using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -47,7 +31,7 @@ namespace FileSnapshotUI.Pages {
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             base.OnNavigatedTo(e);
-            if(e.Parameter is MainWindow window) {
+            if (e.Parameter is MainWindow window) {
                 _hostWindow = window;
                 RootViewModel = window.ViewModel;
             }
@@ -59,7 +43,7 @@ namespace FileSnapshotUI.Pages {
             if (_hostWindow == null) return;
             string? selectedFilePath = OpenDialogHelper.PickSingleFile(_hostWindow);
 
-            if(!string.IsNullOrEmpty(selectedFilePath)) {
+            if (!string.IsNullOrEmpty(selectedFilePath)) {
                 RootViewModel.Files.Add(new FileItem(selectedFilePath));
             }
         }
@@ -74,7 +58,7 @@ namespace FileSnapshotUI.Pages {
                     SecondaryButtonText = "Cancel"
                 };
                 ContentDialogResult result = await confirmDialog.ShowAsync();
-                if(result == ContentDialogResult.Primary) {
+                if (result == ContentDialogResult.Primary) {
                     var backupPath = selected.BackupPath;
                     RootViewModel.Files.Remove(selected);
                     //DeleteButton.IsEnabled = false;
@@ -95,7 +79,7 @@ namespace FileSnapshotUI.Pages {
         }
 
         private void FilesListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if(RootViewModel.SelectedFile?.Snapshots != null && _snapshotChangeHandler != null) {
+            if (RootViewModel.SelectedFile?.Snapshots != null && _snapshotChangeHandler != null) {
                 RootViewModel.SelectedFile.Snapshots.CollectionChanged -= _snapshotChangeHandler;
                 _snapshotChangeHandler = null;
             }
@@ -118,7 +102,7 @@ namespace FileSnapshotUI.Pages {
         }
 
         private void NotificationButton_Click(object sender, RoutedEventArgs e) {
-            if(RootViewModel.UnreadCount > 0) {
+            if (RootViewModel.UnreadCount > 0) {
                 RootViewModel.UnreadCount = 0;
             }
             _hostWindow?.OpenDrawer(DrawerContent.Notifications);

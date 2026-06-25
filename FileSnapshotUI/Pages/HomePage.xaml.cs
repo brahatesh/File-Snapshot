@@ -9,12 +9,9 @@ using Microsoft.UI.Xaml.Controls;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace FileSnapshotUI.Pages
-{
-    public sealed partial class HomePage : Page
-    {
-        public HomePage()
-        {
+namespace FileSnapshotUI.Pages {
+    public sealed partial class HomePage : Page {
+        public HomePage() {
             this.InitializeComponent();
         }
     }

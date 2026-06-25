@@ -52,7 +52,7 @@ public static class FileOperationsHelper {
     }
 
     public static bool CanReadFromDir(string dirPath) {
-        if(string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath)) return false;
+        if (string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath)) return false;
 
         try {
             var testRead = Directory.EnumerateFileSystemEntries(dirPath).Any();
@@ -85,12 +85,12 @@ public static class FileOperationsHelper {
     }
 
     public static bool CanCopyFile(string filePath) {
-        if(string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
+        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
             return false;
         }
 
         try {
-            using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); 
+            using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             return true;
         }
         catch (Exception) {
@@ -123,11 +123,11 @@ public static class FileOperationsHelper {
         foreach (FileInfo file in directory.GetFiles("*", SearchOption.AllDirectories)) {
             file.Attributes = FileAttributes.Normal;
         }
-        
+
         foreach (DirectoryInfo dir in directory.GetDirectories("*", SearchOption.AllDirectories)) {
             dir.Attributes = FileAttributes.Normal;
         }
-        
+
         directory.Attributes = FileAttributes.Normal;
     }
 
@@ -139,8 +139,8 @@ public static class FileOperationsHelper {
         var workbookPart = document.WorkbookPart;
         if (workbookPart == null) return;
 
-        foreach(var worksheetPart in workbookPart.WorksheetParts) {
-            if(worksheetPart.SpreadsheetPrinterSettingsParts.Any()) {
+        foreach (var worksheetPart in workbookPart.WorksheetParts) {
+            if (worksheetPart.SpreadsheetPrinterSettingsParts.Any()) {
                 worksheetPart.DeleteParts(worksheetPart.SpreadsheetPrinterSettingsParts);
             }
         }
@@ -153,7 +153,7 @@ public static class FileOperationsHelper {
             workbookPart.DeletePart(workbookPart.WorkbookRevisionHeaderPart);
         }
 
-        if(workbookPart.CustomXmlMappingsPart != null) {
+        if (workbookPart.CustomXmlMappingsPart != null) {
             workbookPart.DeletePart(workbookPart.CustomXmlMappingsPart);
         }
     }

@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Windows.Input;
 using SystemTray.Interfaces;
 using SystemTray.UI;
-using Windows.ApplicationModel;
 using Windows.Foundation;
 
 // -----------------------------------------------------------------------------
@@ -19,10 +18,8 @@ using Windows.Foundation;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace SystemTray.Core
-{
-    public class SystemTrayManager : IDisposable
-    {
+namespace SystemTray.Core {
+    public class SystemTrayManager : IDisposable {
         private readonly WindowHelper windowHelper;
         private SystemTrayIcon SystemTrayIcon;
         private SystemTrayContextMenuWindow? contextMenuWindow;
@@ -38,8 +35,7 @@ namespace SystemTray.Core
             "he", "he-IL"
         ];
 
-        private static readonly Dictionary<LangPair, string[]> MenuTranslations = new()
-        {
+        private static readonly Dictionary<LangPair, string[]> MenuTranslations = new() {
             [new("fa", "fa-IR")] = ["تنظیمات", "خروج"],
             [new("ar", "ar-SA")] = ["الإعدادات", "خروج"],
             [new("ur", "ur-PK")] = ["ترتیبات", "خروج"],
@@ -47,17 +43,13 @@ namespace SystemTray.Core
             [new("default", "default")] = ["Open", "Exit"]
         };
 
-        public bool IsIconVisible
-        {
+        public bool IsIconVisible {
             get => SystemTrayIcon != null && SystemTrayIcon.IsVisible;
-            set
-            {
-                if (value)
-                {
+            set {
+                if (value) {
                     SystemTrayIcon?.Show();
                 }
-                else
-                {
+                else {
                     SystemTrayIcon?.Hide();
                 }
                 windowHelper.IsIconVisible = value;
@@ -65,68 +57,55 @@ namespace SystemTray.Core
         }
 
         private string languageCode = "";
-        public string LanguageCode
-        {
+        public string LanguageCode {
             get => languageCode;
-            set
-            {
+            set {
                 languageCode = value;
                 RefreshContextMenu();
             }
         }
 
         private string iconToolTip = "";
-        public string IconToolTip
-        {
+        public string IconToolTip {
             get => iconToolTip;
-            set
-            {
+            set {
                 iconToolTip = value;
-                if (SystemTrayIcon != null)
-                {
+                if (SystemTrayIcon != null) {
                     SystemTrayIcon.Text = iconToolTip;
                 }
             }
         }
 
-        public bool IsWindowVisible
-        {
-            get
-            {
+        public bool IsWindowVisible {
+            get {
                 var appWindow = windowHelper.AppWindow;
                 return appWindow != null && appWindow.IsVisible;
             }
         }
 
         private bool minimizeToTray = true;
-        public bool MinimizeToTray
-        {
+        public bool MinimizeToTray {
             get => minimizeToTray;
-            set
-            {
+            set {
                 minimizeToTray = value;
             }
         }
 
         private bool closeButtonMinimizesToTray = true;
-        public bool CloseButtonMinimizesToTray
-        {
+        public bool CloseButtonMinimizesToTray {
             get => closeButtonMinimizesToTray;
-            set
-            {
+            set {
                 closeButtonMinimizesToTray = value;
                 windowHelper.CloseButtonMinimizesToTray = value;
             }
         }
 
-        public SystemTrayManager(WindowHelper windowHelper)
-        {
+        public SystemTrayManager(WindowHelper windowHelper) {
             this.windowHelper = windowHelper ?? throw new ArgumentNullException(nameof(windowHelper));
 
             this.windowHelper.CloseButtonPressed += OnWindowCloseButtonPressed;
 
-            SystemTrayIcon = new SystemTrayIcon(windowHelper)
-            {
+            SystemTrayIcon = new SystemTrayIcon(windowHelper) {
                 Id = Guid.NewGuid(),
                 //Icon = new LibIcon("shell32.dll", 130),
                 Icon = new IcoIcon("Assets/Icon.ico"),
@@ -135,15 +114,12 @@ namespace SystemTray.Core
 
             InitializeContextMenu();
 
-            SystemTrayIcon.RightClick += (_, e) =>
-            {
-                if (double.IsInfinity(e.Rect.X) || double.IsInfinity(e.Rect.Y))
-                {
+            SystemTrayIcon.RightClick += (_, e) => {
+                if (double.IsInfinity(e.Rect.X) || double.IsInfinity(e.Rect.Y)) {
                     var mousePos = GetMousePosition();
                     contextMenuWindow?.Show((int)mousePos.X, (int)mousePos.Y);
                 }
-                else
-                {
+                else {
                     contextMenuWindow?.Show((int)e.Rect.X, (int)e.Rect.Y);
                 }
                 //if (contextMenuWindow != null)
@@ -152,21 +128,18 @@ namespace SystemTray.Core
             SystemTrayIcon.LeftClick += (_, _) => ToggleWindowVisibility();
             SystemTrayIcon.Show();
 
-            if (windowHelper.AppWindow != null)
-            {
+            if (windowHelper.AppWindow != null) {
                 windowHelper.AppWindow.Changed += AppWindow_Changed;
             }
         }
 
-        private void InitializeContextMenu()
-        {
+        private void InitializeContextMenu() {
             BuildMenuItems();
             contextMenuWindow = new SystemTrayContextMenuWindow(menuItems);
             contextMenuWindow.SetFlowDirection(IsRtlLanguage(languageCode));
         }
 
-        public void RefreshContextMenu()
-        {
+        public void RefreshContextMenu() {
             if (contextMenuWindow == null) return;
 
             BuildMenuItems();
@@ -174,8 +147,7 @@ namespace SystemTray.Core
             contextMenuWindow.UpdateItems(menuItems);
         }
 
-        private void BuildMenuItems()
-        {
+        private void BuildMenuItems() {
             var texts = GetMenuTexts(languageCode);
 
             menuItems =
@@ -190,48 +162,38 @@ namespace SystemTray.Core
             ];
         }
 
-        private static string[] GetMenuTexts(string langCode)
-        {
-            foreach (var kvp in MenuTranslations)
-            {
+        private static string[] GetMenuTexts(string langCode) {
+            foreach (var kvp in MenuTranslations) {
                 if (string.Equals(kvp.Key.Primary, langCode, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(kvp.Key.Secondary, langCode, StringComparison.OrdinalIgnoreCase))
-                {
+                    string.Equals(kvp.Key.Secondary, langCode, StringComparison.OrdinalIgnoreCase)) {
                     return kvp.Value;
                 }
             }
             return MenuTranslations[new("default", "default")];
         }
 
-        private static bool IsRtlLanguage(string languageCode)
-        {
-            foreach (var rtl in RtlLanguages)
-            {
+        private static bool IsRtlLanguage(string languageCode) {
+            foreach (var rtl in RtlLanguages) {
                 if (languageCode.StartsWith(rtl, StringComparison.OrdinalIgnoreCase))
                     return true;
             }
             return false;
         }
 
-        public void ToggleWindowVisibility()
-        {
+        public void ToggleWindowVisibility() {
             if (windowHelper.AppWindow.IsVisible)
                 windowHelper.HideWindowToTray();
             else
                 windowHelper.ShowWindowFromTray();
         }
 
-        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
-        {
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args) {
             if (!MinimizeToTray || !IsIconVisible)
                 return;
 
-            if (args.DidSizeChange || args.DidVisibilityChange)
-            {
-                if (sender.Presenter is OverlappedPresenter presenter)
-                {
-                    if (presenter.State == OverlappedPresenterState.Minimized)
-                    {
+            if (args.DidSizeChange || args.DidVisibilityChange) {
+                if (sender.Presenter is OverlappedPresenter presenter) {
+                    if (presenter.State == OverlappedPresenterState.Minimized) {
                         var appWindow = windowHelper.AppWindow;
                         appWindow.Hide();
                     }
@@ -239,34 +201,28 @@ namespace SystemTray.Core
             }
         }
 
-        private void OnWindowCloseButtonPressed()
-        {
-            if (!CloseButtonMinimizesToTray)
-            {
+        private void OnWindowCloseButtonPressed() {
+            if (!CloseButtonMinimizesToTray) {
                 SystemTrayIcon?.Dispose();
                 SystemTrayIcon = null!;
                 Application.Current.Exit();
             }
         }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             SystemTrayIcon?.Dispose();
             SystemTrayIcon = null!;
         }
 
-        private static Point GetMousePosition()
-        {
-            if (GetCursorPos(out POINT point))
-            {
+        private static Point GetMousePosition() {
+            if (GetCursorPos(out POINT point)) {
                 return new Point(point.X, point.Y);
             }
             return new Point(100, 100);
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
+        public struct POINT {
             public int X;
             public int Y;
         }
@@ -275,12 +231,10 @@ namespace SystemTray.Core
         private static extern bool GetCursorPos(out POINT lpPoint);
 
         #region LibIcon & Command
-        public sealed class LibIcon : IIconFile, IDisposable
-        {
+        public sealed class LibIcon : IIconFile, IDisposable {
             private SafeIconHandle iconHandle;
 
-            public LibIcon(string fileName, uint iconIndex)
-            {
+            public LibIcon(string fileName, uint iconIndex) {
                 iconHandle = new SafeIconHandle(ExtractIcon(nint.Zero, fileName, iconIndex), true);
                 if (iconHandle.IsInvalid) throw new InvalidOperationException("Cannot extract icon.");
             }
@@ -289,8 +243,7 @@ namespace SystemTray.Core
 
             public void Dispose() => iconHandle?.Dispose();
 
-            private sealed class SafeIconHandle : SafeHandle
-            {
+            private sealed class SafeIconHandle : SafeHandle {
                 public SafeIconHandle(nint handle, bool ownsHandle) : base(nint.Zero, ownsHandle) => SetHandle(handle);
                 public override bool IsInvalid => handle == nint.Zero;
                 protected override bool ReleaseHandle() => DestroyIcon(handle);
@@ -303,12 +256,10 @@ namespace SystemTray.Core
             private static extern bool DestroyIcon(nint hIcon);
         }
 
-        public sealed class IcoIcon : IIconFile, IDisposable
-        {
+        public sealed class IcoIcon : IIconFile, IDisposable {
             private SafeIconHandle iconHandle;
 
-            public IcoIcon(string path)
-            {
+            public IcoIcon(string path) {
                 // Build full path inside package
                 string fullPath = Path.Combine(AppContext.BaseDirectory, path);
 
@@ -325,14 +276,12 @@ namespace SystemTray.Core
 
             public void Dispose() => iconHandle?.Dispose();
 
-            private static nint LoadImageIcon(string path)
-            {
+            private static nint LoadImageIcon(string path) {
                 // Load from file as HICON
                 return LoadImage(IntPtr.Zero, path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
             }
 
-            private sealed class SafeIconHandle : SafeHandle
-            {
+            private sealed class SafeIconHandle : SafeHandle {
                 public SafeIconHandle(nint handle, bool ownsHandle) : base(nint.Zero, ownsHandle) => SetHandle(handle);
                 public override bool IsInvalid => handle == nint.Zero;
                 protected override bool ReleaseHandle() => DestroyIcon(handle);
@@ -349,8 +298,7 @@ namespace SystemTray.Core
             private static extern nint LoadImage(IntPtr hInst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
         }
 
-        private class Command : ICommand
-        {
+        private class Command : ICommand {
             private readonly Action action;
             public Command(Action action) => this.action = action;
             public event EventHandler? CanExecuteChanged;

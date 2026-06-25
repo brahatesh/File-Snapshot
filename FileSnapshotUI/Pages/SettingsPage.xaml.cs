@@ -11,35 +11,27 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using SystemTray.Core;
-using Windows.Devices.Geolocation;
 
-namespace FileSnapshotUI.Pages
-{
-    public sealed partial class SettingsPage : Page
-    {
+namespace FileSnapshotUI.Pages {
+    public sealed partial class SettingsPage : Page {
         public RootViewModel? ViewModel;
         private SystemTrayManager? systemTrayManager;
         private MainWindow? _hostWindow;
         private NotificationService _notificationService;
 
-        public SettingsPage()
-        {
+        public SettingsPage() {
             this.InitializeComponent();
             _notificationService = App.Services.GetRequiredService<NotificationService>();
         }
 
-        public void SetManager(SystemTrayManager manager)
-        {
+        public void SetManager(SystemTrayManager manager) {
             systemTrayManager = manager;
         }
 
-        private void TrayIconToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (systemTrayManager != null)
-            {
+        private void TrayIconToggle_Toggled(object sender, RoutedEventArgs e) {
+            if (systemTrayManager != null) {
                 systemTrayManager.IsIconVisible = TrayIconToggle.IsOn;
-                if (TrayIconToggle.IsOn == false)
-                {
+                if (TrayIconToggle.IsOn == false) {
                     systemTrayManager.CloseButtonMinimizesToTray = false;
                     CloseButtonTrayToggle.IsOn = false;
                 }
@@ -48,24 +40,19 @@ namespace FileSnapshotUI.Pages
             }
         }
 
-        private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (systemTrayManager != null)
-            {
+        private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e) {
+            if (systemTrayManager != null) {
                 systemTrayManager.MinimizeToTray = MinimizeToTrayToggle.IsOn;
             }
         }
 
-        private void CloseToMinimizesInTrayToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (systemTrayManager != null)
-            {
+        private void CloseToMinimizesInTrayToggle_Toggled(object sender, RoutedEventArgs e) {
+            if (systemTrayManager != null) {
                 systemTrayManager.CloseButtonMinimizesToTray = CloseButtonTrayToggle.IsOn;
             }
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
+        protected override void OnNavigatedTo(NavigationEventArgs e) {
             base.OnNavigatedTo(e);
             if (e.Parameter is MainWindow window) {
                 _hostWindow = window;
@@ -78,7 +65,7 @@ namespace FileSnapshotUI.Pages
                 TrayIconToggle.IsOn = systemTrayManager.IsIconVisible;
                 MinimizeToTrayToggle.IsOn = systemTrayManager.MinimizeToTray;
                 CloseButtonTrayToggle.IsOn = systemTrayManager.CloseButtonMinimizesToTray;
-                if (ViewModel!=null && ViewModel.SelectedFile!=null)
+                if (ViewModel != null && ViewModel.SelectedFile != null)
                     BackupDuration.Text = ViewModel.SelectedFile.SnapshotIntervalDurationString;
             }
         }
@@ -86,8 +73,8 @@ namespace FileSnapshotUI.Pages
         private async void SettingsEditFullPath_Click(object sender, RoutedEventArgs e) {
             if (_hostWindow == null || ViewModel == null || ViewModel.SelectedFile == null) return;
             var newPath = OpenDialogHelper.PickSingleFile(_hostWindow);
-            if(newPath != null) {
-                if(Path.GetExtension(newPath) != Path.GetExtension(ViewModel.SelectedFile.FullPath)) {
+            if (newPath != null) {
+                if (Path.GetExtension(newPath) != Path.GetExtension(ViewModel.SelectedFile.FullPath)) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
                         Title = "File type mismatch",
@@ -98,7 +85,7 @@ namespace FileSnapshotUI.Pages
                     await dialog.ShowAsync();
                     return;
                 }
-                if(Path.GetFileName(newPath) != ViewModel.SelectedFile.FileName) {
+                if (Path.GetFileName(newPath) != ViewModel.SelectedFile.FileName) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
                         Title = "File Name Mismatch",
@@ -108,7 +95,7 @@ namespace FileSnapshotUI.Pages
                     };
 
                     ContentDialogResult result = await dialog.ShowAsync();
-                    if(result == ContentDialogResult.Primary) {
+                    if (result == ContentDialogResult.Primary) {
                         ViewModel.SelectedFile.FullPath = newPath;
                     }
                 }
@@ -121,8 +108,8 @@ namespace FileSnapshotUI.Pages
             var oldDir = ViewModel.SelectedFile.BackupPath;
             var file = ViewModel.SelectedFile;
 
-            if(newDir != null && newDir != oldDir) {
-                if(!FileOperationsHelper.CanReadFromDir(newDir) || !FileOperationsHelper.CanWriteToDir(newDir)) {
+            if (newDir != null && newDir != oldDir) {
+                if (!FileOperationsHelper.CanReadFromDir(newDir) || !FileOperationsHelper.CanWriteToDir(newDir)) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
                         Title = "Cannot access Directory",
@@ -134,7 +121,7 @@ namespace FileSnapshotUI.Pages
                     return;
                 }
 
-                if(Repository.IsValid(newDir)) {
+                if (Repository.IsValid(newDir)) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
                         Title = "Directory cannot be used",
@@ -161,7 +148,7 @@ namespace FileSnapshotUI.Pages
                         try {
                             await FileOperationsHelper.DeleteDirectoryASync(oldDir, CancellationToken.None);
                         }
-                        catch (Exception) {}
+                        catch (Exception) { }
                     }
                     catch (OperationCanceledException) {
                         App.MainDispatcher.TryEnqueue(() => {

@@ -10,10 +10,8 @@ using Windows.Foundation;
 // License: MIT
 // -----------------------------------------------------------------------------
 
-namespace SystemTray.Models
-{
-    public class SystemTrayEventArgs : EventArgs
-    {
+namespace SystemTray.Models {
+    public class SystemTrayEventArgs : EventArgs {
         public Rect Rect { get; init; }
     }
 }

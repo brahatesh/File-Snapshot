@@ -9,10 +9,8 @@
 
 using System;
 
-namespace SystemTray.Interfaces
-{
-    public interface IIconFile : IDisposable
-    {
+namespace SystemTray.Interfaces {
+    public interface IIconFile : IDisposable {
         nint Handle { get; }
     }
 }

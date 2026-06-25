@@ -1,9 +1,8 @@
 ﻿using FileSnapshotUI.Models;
-using System.Collections.ObjectModel;
 using System;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace FileSnapshotUI.ViewModels;
 
@@ -25,11 +24,11 @@ public class NotificationViewModel {
         Notifications.Clear();
     }
 
-    public Notification? GetNotificationById(Guid notificationId) { 
-        return Notifications.FirstOrDefault(n=> n.Id == notificationId);
+    public Notification? GetNotificationById(Guid notificationId) {
+        return Notifications.FirstOrDefault(n => n.Id == notificationId);
     }
 
-    public IEnumerable<Notification> GetNotificationsByFileId(Guid fileItemId) { 
+    public IEnumerable<Notification> GetNotificationsByFileId(Guid fileItemId) {
         return Notifications.Where(n => n.FileItemId == fileItemId);
     }
 }
