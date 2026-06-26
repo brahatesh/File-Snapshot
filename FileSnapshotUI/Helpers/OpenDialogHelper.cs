@@ -32,7 +32,7 @@ namespace FileSnapshotUI.Helpers {
             try {
                 // Extract your WinUI 3 window context handler
                 IntPtr hwndHandle = WinRT.Interop.WindowNative.GetWindowHandle(hostWindow);
-                HWND parentHwnd = new HWND(hwndHandle);
+                HWND parentHwnd = new(hwndHandle);
 
                 // Blocks thread execution until closed/dismissed
                 dialog.Show(parentHwnd);
@@ -91,7 +91,7 @@ namespace FileSnapshotUI.Helpers {
                 dialog.SetOptions(options | FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS);
 
                 IntPtr hwndHandle = WinRT.Interop.WindowNative.GetWindowHandle(hostWindow);
-                HWND parentHwnd = new HWND(hwndHandle);
+                HWND parentHwnd = new(hwndHandle);
 
                 dialog.Show(parentHwnd);
 

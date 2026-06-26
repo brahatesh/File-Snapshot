@@ -21,7 +21,7 @@ public static class FileOperationsHelper {
             string targetFilePath = Path.Combine(destDir, file.Name);
             using var sourceStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.Asynchronous);
             using var destStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
-            await sourceStream.CopyToAsync(destStream);
+            await sourceStream.CopyToAsync(destStream, CancellationToken.None);
         }
 
         foreach (DirectoryInfo subDir in dir.GetDirectories()) {
@@ -45,10 +45,10 @@ public static class FileOperationsHelper {
         string fileName = Path.GetFileName(sourceFile);
         string destFile = Path.Combine(destDir, fileName);
 
-        using FileStream sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, true);
-        using FileStream destStream = new FileStream(destFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+        using FileStream sourceStream = new(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, true);
+        using FileStream destStream = new(destFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
 
-        await sourceStream.CopyToAsync(destStream);
+        await sourceStream.CopyToAsync(destStream, CancellationToken.None);
     }
 
     public static bool CanReadFromDir(string dirPath) {

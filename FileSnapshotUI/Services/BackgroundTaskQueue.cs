@@ -9,7 +9,7 @@ namespace FileSnapshotUI.Services {
             Channel.CreateUnbounded<Func<CancellationToken, ValueTask>>();
 
         public void EnqueueTask(Func<CancellationToken, ValueTask> workItem) {
-            if (workItem == null) throw new ArgumentNullException(nameof(workItem));
+            ArgumentNullException.ThrowIfNull(workItem);
             _queue.Writer.TryWrite(workItem);
         }
 

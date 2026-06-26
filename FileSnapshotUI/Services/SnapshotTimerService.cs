@@ -7,19 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace FileSnapshotUI.Services {
-    public class SnapshotTimerService : BackgroundService {
-        private readonly BackgroundTaskQueue _queue;
-        private readonly RootViewModel _viewModel;
-        private readonly SnapshotService _snapshotService;
-
-        public SnapshotTimerService(
-            BackgroundTaskQueue queue,
-            RootViewModel viewModel,
-            SnapshotService snapshotService) {
-            _queue = queue;
-            _viewModel = viewModel;
-            _snapshotService = snapshotService;
-        }
+    public partial class SnapshotTimerService(
+        BackgroundTaskQueue queue,
+        RootViewModel viewModel,
+        SnapshotService snapshotService) : BackgroundService {
+        private readonly BackgroundTaskQueue _queue = queue;
+        private readonly RootViewModel _viewModel = viewModel;
+        private readonly SnapshotService _snapshotService = snapshotService;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
             using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));

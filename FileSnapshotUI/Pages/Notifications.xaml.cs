@@ -15,7 +15,7 @@ namespace FileSnapshotUI.Pages;
 /// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
 public sealed partial class Notifications : Page {
-    private NotificationViewModel _viewModel;
+    private readonly NotificationViewModel _viewModel;
     private MainWindow? _hostWindow;
     public Notifications() {
         InitializeComponent();

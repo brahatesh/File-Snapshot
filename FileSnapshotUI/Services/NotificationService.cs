@@ -21,7 +21,7 @@ public class NotificationService {
         ViewModel.RemoveNotification(notificationId);
     }
 
-    private void SendWindowsToast(string? fileName, string message) {
+    private static void SendWindowsToast(string? fileName, string message) {
         try {
             string title = string.IsNullOrEmpty(fileName) ? "File Snapshot" : $"Snapshot: {fileName}";
 

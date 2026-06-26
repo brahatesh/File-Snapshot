@@ -9,12 +9,8 @@ using System.Threading.Tasks;
 
 namespace FileSnapshotUI.Services;
 
-public class SnapshotService {
-    private readonly NotificationService _notifications;
-
-    public SnapshotService(NotificationService notifications) {
-        _notifications = notifications;
-    }
+public class SnapshotService(NotificationService notifications) {
+    private readonly NotificationService _notifications = notifications;
 
     public async Task PerformSnapshotAsync(FileItem file, CancellationToken token) {
         var workingDir = AppEnvironment.GetTempFolder();
@@ -70,8 +66,8 @@ public class SnapshotService {
             using var repo = new Repository(backupDir);
             Commands.Stage(repo, "*");
 
-            Signature author = new Signature(Environment.UserName, Environment.UserDomainName, snapshotTime);
-            Signature committer = new Signature("File Snapshot App", "@filesnapshot", snapshotTime);
+            Signature author = new(Environment.UserName, Environment.UserDomainName, snapshotTime);
+            Signature committer = new("File Snapshot App", "@filesnapshot", snapshotTime);
 
             Commit commit = repo.Commit($"{snapshotTime:G}", author, committer);
 

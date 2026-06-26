@@ -20,6 +20,7 @@ public partial class FileItem : INotifyPropertyChanged {
     private bool _isDarkMode = false;
     private TimeSpan _snapshotIntervalDuration;
     private bool _isProcessing;
+    private string _iconGlyphPath { get; set; } = "/Assets/OtherLogoLightMode48x48.png";
 
     public ObservableCollection<SnapshotDetails> Snapshots { get; } = [];
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -92,7 +93,6 @@ public partial class FileItem : INotifyPropertyChanged {
         get => _fileName;
     }
 
-    private string _iconGlyphPath { get; set; } = "/Assets/OtherLogoLightMode48x48.png";
     public string IconGlyphPath {
         get => _iconGlyphPath;
         private set {

@@ -4,12 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace FileSnapshotUI.Services {
-    public class TaskProcessingService : BackgroundService {
-        private readonly BackgroundTaskQueue _taskQueue;
-
-        public TaskProcessingService(BackgroundTaskQueue taskQueue) {
-            _taskQueue = taskQueue;
-        }
+    public partial class TaskProcessingService(BackgroundTaskQueue taskQueue) : BackgroundService {
+        private readonly BackgroundTaskQueue _taskQueue = taskQueue;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
             while (!stoppingToken.IsCancellationRequested) {

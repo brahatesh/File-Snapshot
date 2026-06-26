@@ -17,7 +17,7 @@ namespace FileSnapshotUI.Pages {
         public RootViewModel? ViewModel;
         private SystemTrayManager? systemTrayManager;
         private MainWindow? _hostWindow;
-        private NotificationService _notificationService;
+        private readonly NotificationService _notificationService;
 
         public SettingsPage() {
             this.InitializeComponent();
@@ -175,7 +175,7 @@ namespace FileSnapshotUI.Pages {
         private void SaveBackupDuration_Click(object sender, RoutedEventArgs e) {
             if (ViewModel == null || ViewModel.SelectedFile == null) return;
             string durationString = BackupDuration.Text;
-            TimeSpan duration = TimeSpan.Zero;
+            TimeSpan duration;
             try {
                 duration = TimeSpanJiraStringConverter.JiraToTimeSpan(durationString);
                 BackupDurationError.Visibility = Visibility.Collapsed;

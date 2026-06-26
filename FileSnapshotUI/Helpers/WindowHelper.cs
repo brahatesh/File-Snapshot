@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 
 namespace FileSnapshotUI.Helpers;
 
-internal class WindowHelper {
+internal class WindowHelper(Window window) {
     private POINT? minWindowSize = null;
     private POINT? maxWindowSize = null;
-    private readonly Window window;
+    private readonly Window window = window;
     private static WinProc? newWndProc = null;
     private static nint oldWndProc = nint.Zero;
 
@@ -43,10 +43,6 @@ internal class WindowHelper {
 
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
     internal static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, WindowLongIndexFlags nIndex, WinProc newProc);
-
-    public WindowHelper(Window window) {
-        this.window = window;
-    }
 
     private static nint GetWindowHandleForCurrentWindow(object target) => WinRT.Interop.WindowNative.GetWindowHandle(target);
 

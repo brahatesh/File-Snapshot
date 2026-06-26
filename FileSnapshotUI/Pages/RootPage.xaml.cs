@@ -126,6 +126,7 @@ namespace FileSnapshotUI.Pages {
                 var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                 queue.EnqueueTask(async (token) => {
                     await snapshotService.PerformSnapshotAsync(selected, token);
+                    await default(ValueTask);
                 });
                 //selected.AddSnapshot();
                 //NotificationService.Instance.AddNotification(selected, "Created snapshot");
