@@ -11,13 +11,15 @@ public class SnapshotDetails {
     private readonly DateTime _snapshotTimeUTC;
     private readonly Commit _commit;
     private readonly ReadOnlyCollection<string> _trackedFiles;
+    private readonly ReadOnlyCollection<string> _trackedDirectories;
 
-    public SnapshotDetails(Guid fileId, DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles) {
+    public SnapshotDetails(Guid fileId, DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles, IEnumerable<string> trackedDirectories) {
         _fileId = fileId;
         if (snapshotTime.Kind == DateTimeKind.Utc) throw new InvalidTimeZoneException("Snapshot TimeZone must be UTC");
         _snapshotTimeUTC = snapshotTime;
         _commit = commit;
         _trackedFiles = new ReadOnlyCollection<string>([.. trackedFiles]);
+        _trackedDirectories = new ReadOnlyCollection<string>([.. trackedDirectories]);
     }
 
     public Guid FileId {
@@ -37,4 +39,5 @@ public class SnapshotDetails {
     }
 
     public ReadOnlyCollection<string> TrackedFiles => _trackedFiles;
+    public ReadOnlyCollection<string> TrackedDirectories => _trackedDirectories;
 }

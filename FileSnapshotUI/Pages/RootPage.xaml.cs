@@ -71,7 +71,8 @@ namespace FileSnapshotUI.Pages {
                     queue.EnqueueTask(async (token) => {
                         try {
                             IEnumerable<string> trackedFiles = selected.Snapshots.Last().TrackedFiles;
-                            await FileOperationsHelper.DeleteTrackedFilesAsync(backupPath, trackedFiles, token, true);
+                            IEnumerable<string> trackedDirs = selected.Snapshots.Last().TrackedDirectories;
+                            await FileOperationsHelper.DeleteTrackedFilesAsync(backupPath, trackedFiles, trackedDirs, token, true);
                         }
                         catch (Exception) { }
 

@@ -143,6 +143,7 @@ namespace FileSnapshotUI.Pages {
                 queue.EnqueueTask(async (token) => {
                     try {
                         IEnumerable<string> trackedFiles = file.Snapshots.Last().TrackedFiles;
+                        IEnumerable<string> trackedDirs = file.Snapshots.Last().TrackedDirectories;
                         await FileOperationsHelper.CopyTrackedFilesAsync(oldDir, newDir, trackedFiles, token, true);
 
                         App.MainDispatcher.TryEnqueue(() => {
@@ -150,7 +151,7 @@ namespace FileSnapshotUI.Pages {
                         });
 
                         try {
-                            await FileOperationsHelper.DeleteTrackedFilesAsync(oldDir, trackedFiles, CancellationToken.None, true);
+                            await FileOperationsHelper.DeleteTrackedFilesAsync(oldDir, trackedFiles, trackedDirs, CancellationToken.None, true);
                         }
                         catch (Exception) { }
                     }

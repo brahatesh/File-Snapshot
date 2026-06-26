@@ -27,7 +27,7 @@ namespace FileSnapshotUI.Services {
                     var dueFiles = new List<FileItem>();
                     foreach (var file in _viewModel.Files) {
                         // Using your newly updated property name
-                        if (now - file.LastBackup >= file.SnapshotIntervalDuration) {
+                        if (now - file.LastBackup >= file.SnapshotIntervalDuration && file.IsNotProcessing) {
                             dueFiles.Add(file);
                         }
                     }

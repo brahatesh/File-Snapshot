@@ -157,8 +157,8 @@ public partial class FileItem : INotifyPropertyChanged {
         return glyphPath;
     }
 
-    public void AddSnapshot(DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles) {
-        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime, commit, trackedFiles));
+    public void AddSnapshot(DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles, IEnumerable<string> trackedDirectories) {
+        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime, commit, trackedFiles, trackedDirectories));
         LastBackup = snapshotTime;
     }
 

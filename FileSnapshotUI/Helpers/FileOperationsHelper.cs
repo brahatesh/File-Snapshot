@@ -77,13 +77,21 @@ public static class FileOperationsHelper {
         }
     }
 
-    public static async Task DeleteTrackedFilesAsync(string dirPath, IEnumerable<string> trackedFiles, CancellationToken token, bool deleteGit = false) {
+    public static async Task DeleteTrackedFilesAsync(string dirPath, IEnumerable<string> trackedFiles, IEnumerable<string> trackedDirectories, CancellationToken token, bool deleteGit = false) {
         foreach (var relPath in trackedFiles) {
             token.ThrowIfCancellationRequested();
             string targetFile = Path.Combine(dirPath, relPath);
             if (File.Exists(targetFile)) {
                 File.SetAttributes(targetFile, FileAttributes.Normal);
                 File.Delete(targetFile);
+            }
+        }
+
+        var orderedDirs = trackedDirectories.OrderByDescending(d => d.Length);
+        foreach (var relDir in orderedDirs) {
+            string targetDir = Path.Combine(dirPath, relDir);
+            if (Directory.Exists(targetDir) && !Directory.EnumerateFileSystemEntries(targetDir).Any()) {
+                Directory.Delete(targetDir, false);
             }
         }
 
@@ -98,7 +106,7 @@ public static class FileOperationsHelper {
         }
 
         //CleanEmptyDirectories(dirPath);
-        if(!Directory.EnumerateFileSystemEntries(dirPath).Any()) {
+        if(Directory.Exists(dirPath) && !Directory.EnumerateFileSystemEntries(dirPath).Any()) {
             Directory.Delete(dirPath);
         }
     }
