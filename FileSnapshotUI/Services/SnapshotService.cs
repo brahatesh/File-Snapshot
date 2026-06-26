@@ -2,8 +2,10 @@
 using FileSnapshotUI.Models;
 using LibGit2Sharp;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,13 +21,16 @@ public class SnapshotService(NotificationService notifications) {
         string sourcePath = file.FullPath;
         var fileType = file.FileType;
         DateTime snapshotTime = DateTime.Now;
+        List<string> newTrackedFiles = [];
+        IEnumerable<string> oldTrackedFiles = [];
+        if (file.Snapshots.Count>0) oldTrackedFiles = file.Snapshots.Last().TrackedFiles;
 
         App.MainDispatcher.TryEnqueue(() => file.IsProcessing = true);
 
         try {
             if (!Repository.IsValid(backupDir)) throw new InvalidOperationException("Git repo not found. Backup location invalid.");
 
-            await FileOperationsHelper.DeleteDirectoryASync(backupDir, token, false);
+            await FileOperationsHelper.DeleteTrackedFilesAsync(backupDir, oldTrackedFiles, token);
 
             switch (fileType) {
                 case FileItem.FileTypeEnum.Excel:
@@ -36,6 +41,7 @@ public class SnapshotService(NotificationService notifications) {
                     var extractPath = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(sourcePath));
                     ZipFile.ExtractToDirectory(tempPath, extractPath);
                     await FileOperationsHelper.CopyDirectoryAsync(extractPath, backupDir, token);
+                    newTrackedFiles.AddRange(GetRelativeFiles(extractPath));
                     break;
 
                 case FileItem.FileTypeEnum.Word:
@@ -46,6 +52,7 @@ public class SnapshotService(NotificationService notifications) {
                     extractPath = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(sourcePath));
                     ZipFile.ExtractToDirectory(tempPath, extractPath);
                     await FileOperationsHelper.CopyDirectoryAsync(extractPath, backupDir, token);
+                    newTrackedFiles.AddRange(GetRelativeFiles(extractPath));
                     break;
 
                 case FileItem.FileTypeEnum.Powerpoint:
@@ -56,10 +63,12 @@ public class SnapshotService(NotificationService notifications) {
                     extractPath = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(sourcePath));
                     ZipFile.ExtractToDirectory(tempPath, extractPath);
                     await FileOperationsHelper.CopyDirectoryAsync(extractPath, backupDir, token);
+                    newTrackedFiles.AddRange(GetRelativeFiles(extractPath));
                     break;
 
                 default:
                     await FileOperationsHelper.CopyFileAsync(sourcePath, backupDir, token);
+                    newTrackedFiles.AddRange([$"{Path.GetFileName(sourcePath)}"]);
                     break;
             }
 
@@ -71,7 +80,7 @@ public class SnapshotService(NotificationService notifications) {
 
             Commit commit = repo.Commit($"{snapshotTime:G}", author, committer);
 
-            App.MainDispatcher.TryEnqueue(() => file.AddSnapshot(snapshotTime, commit));
+            App.MainDispatcher.TryEnqueue(() => file.AddSnapshot(snapshotTime, commit, newTrackedFiles));
         }
         catch (Exception ex) {
             App.MainDispatcher.TryEnqueue(() => _notifications.AddNotification(file, $"Snapshot failed: {ex.Message}"));
@@ -79,5 +88,9 @@ public class SnapshotService(NotificationService notifications) {
 
         App.MainDispatcher.TryEnqueue(() => file.IsProcessing = false);
         Directory.Delete(workingDir, true);
+    }
+    private static IEnumerable<string> GetRelativeFiles(string basePath) {
+        return Directory.GetFiles(basePath, "*", SearchOption.AllDirectories)
+                        .Select(f => Path.GetRelativePath(basePath, f));
     }
 }

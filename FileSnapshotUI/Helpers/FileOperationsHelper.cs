@@ -1,5 +1,8 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Windows.Foundation;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -51,6 +54,73 @@ public static class FileOperationsHelper {
         await sourceStream.CopyToAsync(destStream, CancellationToken.None);
     }
 
+    public static async Task CopyTrackedFilesAsync(string sourceDir, string destDir, IEnumerable<string> trackedFiles, CancellationToken token, bool moveGit = false) {
+        if(moveGit) {
+            string sourceGit = Path.Combine(sourceDir, ".git");
+            string destGit = Path.Combine(destDir, ".git");
+            if (Directory.Exists(sourceGit)) {
+                await CopyDirectoryAsync(sourceGit, destGit, token);
+            }
+        }
+
+        foreach (var relPath in trackedFiles) {
+            token.ThrowIfCancellationRequested();
+            string srcFile = Path.Combine(sourceDir, relPath);
+            string destFile = Path.Combine(destDir, relPath);
+
+            if (File.Exists(srcFile)) {
+                Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+                using var sourceStream = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, true);
+                using var destStream = new FileStream(destFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+                await sourceStream.CopyToAsync(destStream, CancellationToken.None);
+            }
+        }
+    }
+
+    public static async Task DeleteTrackedFilesAsync(string dirPath, IEnumerable<string> trackedFiles, CancellationToken token, bool deleteGit = false) {
+        foreach (var relPath in trackedFiles) {
+            token.ThrowIfCancellationRequested();
+            string targetFile = Path.Combine(dirPath, relPath);
+            if (File.Exists(targetFile)) {
+                File.SetAttributes(targetFile, FileAttributes.Normal);
+                File.Delete(targetFile);
+            }
+        }
+
+        if (deleteGit) {
+            string gitDir = Path.Combine(dirPath, ".git");
+            if (Directory.Exists(gitDir)) {
+                var dir = new DirectoryInfo(gitDir);
+                RemoveReadOnlyAttributes(dir);
+                Directory.Delete(gitDir, true);
+                //await DeleteDirectoryASync(gitDir, token, true); // deleteGit = true resets attributes internally
+            }
+        }
+
+        //CleanEmptyDirectories(dirPath);
+        if(!Directory.EnumerateFileSystemEntries(dirPath).Any()) {
+            Directory.Delete(dirPath);
+        }
+    }
+
+    //private static void CleanEmptyDirectories(string startLocation) {
+    //    if (!Directory.Exists(startLocation)) return;
+
+    //    foreach (var directory in Directory.GetDirectories(startLocation)) {
+    //        CleanEmptyDirectories(directory);
+
+    //        // If the sub-directory is empty, delete it
+    //        if (!Directory.EnumerateFileSystemEntries(directory).Any()) {
+    //            Directory.Delete(directory, false);
+    //        }
+    //    }
+
+    //    // Check if the root startLocation is empty after children were processed
+    //    if (Directory.Exists(startLocation) && !Directory.EnumerateFileSystemEntries(startLocation).Any()) {
+    //        Directory.Delete(startLocation, false);
+    //    }
+    //}
+
     public static bool CanReadFromDir(string dirPath) {
         if (string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath)) return false;
 
@@ -98,26 +168,26 @@ public static class FileOperationsHelper {
         }
     }
 
-    public static async Task DeleteDirectoryASync(string dirPath, CancellationToken token, bool deleteGit = true) {
-        var dir = new DirectoryInfo(dirPath);
-        if (!dir.Exists) return;
+    //public static async Task DeleteDirectoryASync(string dirPath, CancellationToken token, bool deleteGit = true) {
+    //    var dir = new DirectoryInfo(dirPath);
+    //    if (!dir.Exists) return;
 
-        if (deleteGit) {
-            RemoveReadOnlyAttributes(dir);
-            Directory.Delete(dirPath, true);
-        }
-        else {
-            foreach (FileInfo file in dir.GetFiles()) {
-                file.Attributes = FileAttributes.Normal;
-                File.Delete(file.FullName);
-            }
+    //    if (deleteGit) {
+    //        RemoveReadOnlyAttributes(dir);
+    //        Directory.Delete(dirPath, true);
+    //    }
+    //    else {
+    //        foreach (FileInfo file in dir.GetFiles()) {
+    //            file.Attributes = FileAttributes.Normal;
+    //            File.Delete(file.FullName);
+    //        }
 
-            foreach (DirectoryInfo subDir in dir.GetDirectories()) {
-                if (subDir.Name == ".git") continue;
-                await DeleteDirectoryASync(subDir.FullName, token);
-            }
-        }
-    }
+    //        foreach (DirectoryInfo subDir in dir.GetDirectories()) {
+    //            if (subDir.Name == ".git") continue;
+    //            await DeleteDirectoryASync(subDir.FullName, token);
+    //        }
+    //    }
+    //}
 
     private static void RemoveReadOnlyAttributes(DirectoryInfo directory) {
         foreach (FileInfo file in directory.GetFiles("*", SearchOption.AllDirectories)) {

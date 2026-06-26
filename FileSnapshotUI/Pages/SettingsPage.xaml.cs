@@ -7,7 +7,10 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SystemTray.Core;
@@ -139,14 +142,15 @@ namespace FileSnapshotUI.Pages {
                 var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                 queue.EnqueueTask(async (token) => {
                     try {
-                        await FileOperationsHelper.CopyDirectoryAsync(oldDir, newDir, token);
+                        IEnumerable<string> trackedFiles = file.Snapshots.Last().TrackedFiles;
+                        await FileOperationsHelper.CopyTrackedFilesAsync(oldDir, newDir, trackedFiles, token, true);
 
                         App.MainDispatcher.TryEnqueue(() => {
                             _notificationService?.AddNotification(file, "Backup moved successfully");
                         });
 
                         try {
-                            await FileOperationsHelper.DeleteDirectoryASync(oldDir, CancellationToken.None);
+                            await FileOperationsHelper.DeleteTrackedFilesAsync(oldDir, trackedFiles, CancellationToken.None, true);
                         }
                         catch (Exception) { }
                     }

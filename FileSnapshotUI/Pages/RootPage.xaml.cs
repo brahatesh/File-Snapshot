@@ -8,7 +8,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Threading.Tasks;
 //using WinRT.Interop;
 
@@ -67,7 +70,8 @@ namespace FileSnapshotUI.Pages {
                     var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                     queue.EnqueueTask(async (token) => {
                         try {
-                            await FileOperationsHelper.DeleteDirectoryASync(backupPath, token);
+                            IEnumerable<string> trackedFiles = selected.Snapshots.Last().TrackedFiles;
+                            await FileOperationsHelper.DeleteTrackedFilesAsync(backupPath, trackedFiles, token, true);
                         }
                         catch (Exception) { }
 

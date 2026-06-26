@@ -3,6 +3,8 @@ using LibGit2Sharp;
 using Microsoft.UI;
 //using Microsoft.UI.Xaml.Shapes;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -155,8 +157,8 @@ public partial class FileItem : INotifyPropertyChanged {
         return glyphPath;
     }
 
-    public void AddSnapshot(DateTime snapshotTime, Commit commit) {
-        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime, commit));
+    public void AddSnapshot(DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles) {
+        Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime, commit, trackedFiles));
         LastBackup = snapshotTime;
     }
 
