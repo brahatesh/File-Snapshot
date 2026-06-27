@@ -41,7 +41,7 @@ namespace FileSnapshotUI.Services {
                     _queue.EnqueueTask(async (token) => {
                         // 1. DO HEAVY I/O HERE (Background Thread)
                         // File.Copy(file.FullPath, Path.Combine(file.BackupPath, "snapshot.tmp"));
-                        await _snapshotService.PerformSnapshotAsync(file, token);
+                        await _snapshotService.PerformSnapshotAsync(file, SnapshotMode.Automatic, token);
 
 
                         // 2. UPDATE UI HERE (UI Thread)

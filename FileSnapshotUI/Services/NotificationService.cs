@@ -25,12 +25,17 @@ public class NotificationService {
         try {
             string title = string.IsNullOrEmpty(fileName) ? "File Snapshot" : $"Snapshot: {fileName}";
 
-            var toast = new AppNotificationBuilder()
-                .AddText(title)
-                .AddText(message)
-                .BuildNotification();
+            string logoPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Assets", "Square44x44Logo.scale-200.png");
 
-            AppNotificationManager.Default.Show(toast);
+            var builder = new AppNotificationBuilder()
+                .AddText(title)
+                .AddText(message);
+
+            if (System.IO.File.Exists(logoPath)) {
+                builder.SetAppLogoOverride(new Uri(logoPath), AppNotificationImageCrop.Default);
+            }
+
+            AppNotificationManager.Default.Show(builder.BuildNotification());
         }
         catch (Exception ex) {
             System.Diagnostics.Debug.WriteLine($"Failed to send Windows notification: {ex.Message}");

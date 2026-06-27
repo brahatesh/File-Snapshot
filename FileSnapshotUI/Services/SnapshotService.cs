@@ -11,10 +11,16 @@ using System.Threading.Tasks;
 
 namespace FileSnapshotUI.Services;
 
+public enum SnapshotMode {
+    Manual,
+    Automatic,
+    Silent
+}
+
 public class SnapshotService(NotificationService notifications) {
     private readonly NotificationService _notifications = notifications;
 
-    public async Task PerformSnapshotAsync(FileItem file, CancellationToken token, bool silent = false) {
+    public async Task PerformSnapshotAsync(FileItem file, SnapshotMode mode, CancellationToken token) {
         var workingDir = AppEnvironment.GetTempFolder();
         Directory.CreateDirectory(workingDir);
         string backupDir = file.BackupPath;
@@ -32,6 +38,8 @@ public class SnapshotService(NotificationService notifications) {
             oldTrackedFiles = file.Snapshots.Last().TrackedFiles;
             oldTrackedDirectories = file.Snapshots.Last().TrackedDirectories;
         }
+
+        bool fileAlreadyLocked = file.IsProcessing;
 
         App.MainDispatcher.TryEnqueue(() => file.IsProcessing = true);
 
@@ -76,12 +84,15 @@ public class SnapshotService(NotificationService notifications) {
 
             App.MainDispatcher.TryEnqueue(() => file.AddSnapshot(snapshotTime, commit, newTrackedFiles, newTrackedDirectories));
         }
+        catch (EmptyCommitException) {
+            if(mode == SnapshotMode.Manual) App.MainDispatcher.TryEnqueue(() => _notifications.AddNotification(file, "No changes found to snapshot."));
+        }
         catch (Exception ex) {
-            if (!silent) App.MainDispatcher.TryEnqueue(() => _notifications.AddNotification(file, $"Snapshot failed: {ex.Message}"));
-            else if (ex is not EmptyCommitException) throw;
+            if (mode == SnapshotMode.Silent) throw;
+            else App.MainDispatcher.TryEnqueue(() => _notifications.AddNotification(file, $"Snapshot failed: {ex.Message}"));
         }
 
-        App.MainDispatcher.TryEnqueue(() => file.IsProcessing = false);
+        App.MainDispatcher.TryEnqueue(() => file.IsProcessing = fileAlreadyLocked);
         Directory.Delete(workingDir, true);
     }
     private static IEnumerable<string> GetRelativeFiles(string basePath) {

@@ -76,7 +76,8 @@ namespace FileSnapshotUI {
             this.InitializeComponent();
 
             AppNotificationManager.Default.NotificationInvoked += NotificationManager_NotificationInvoked;
-            AppNotificationManager.Default.Register();
+            string appIconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Assets", "Icon.ico");
+            AppNotificationManager.Default.Register("File Snapshot", new Uri(appIconPath));
 
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) => {

@@ -70,8 +70,12 @@ namespace FileSnapshotUI.Pages {
                     var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                     queue.EnqueueTask(async (token) => {
                         try {
-                            IEnumerable<string> trackedFiles = selected.Snapshots.Last().TrackedFiles;
-                            IEnumerable<string> trackedDirs = selected.Snapshots.Last().TrackedDirectories;
+                            IEnumerable<string> trackedFiles = [];
+                            IEnumerable<string> trackedDirs = [];
+                            if(selected.Snapshots.Count > 0) {
+                                trackedFiles = selected.Snapshots.Last().TrackedFiles;
+                                trackedDirs = selected.Snapshots.Last().TrackedDirectories;
+                            }
                             await FileOperationsHelper.DeleteTrackedFilesAsync(backupPath, trackedFiles, trackedDirs, token, true);
                         }
                         catch (Exception) { }
@@ -115,13 +119,14 @@ namespace FileSnapshotUI.Pages {
 
         private void UpdateDetailsFrame() {
             var selected = RootViewModel.SelectedFile;
-            if (selected != null && selected.Snapshots != null && selected.Snapshots.Count > 0) {
-                // Pass the selected FileItem to DetailsPage as parameter
-                DetailsFrame.Navigate(typeof(DetailsPage), selected, new SuppressNavigationTransitionInfo());
-            }
-            else {
-                DetailsFrame.Navigate(typeof(EmptyDetailsPage), null, new SuppressNavigationTransitionInfo());
-            }
+            //if (selected != null && selected.Snapshots != null && selected.Snapshots.Count > 0) {
+            //    // Pass the selected FileItem to DetailsPage as parameter
+            //    DetailsFrame.Navigate(typeof(DetailsPage), selected, new SuppressNavigationTransitionInfo());
+            //}
+            //else {
+            //    DetailsFrame.Navigate(typeof(EmptyDetailsPage), null, new SuppressNavigationTransitionInfo());
+            //}
+            DetailsFrame.Navigate(typeof(DetailsPage), selected, new SuppressNavigationTransitionInfo());
         }
 
         private void CreateSnapshot_Click(object sender, RoutedEventArgs e) {
@@ -130,7 +135,7 @@ namespace FileSnapshotUI.Pages {
                 var snapshotService = App.Services.GetRequiredService<SnapshotService>();
                 var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                 queue.EnqueueTask(async (token) => {
-                    await snapshotService.PerformSnapshotAsync(selected, token);
+                    await snapshotService.PerformSnapshotAsync(selected, SnapshotMode.Manual, token);
                     await default(ValueTask);
                 });
                 //selected.AddSnapshot();

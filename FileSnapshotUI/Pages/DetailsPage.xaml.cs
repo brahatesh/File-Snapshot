@@ -58,10 +58,12 @@ namespace FileSnapshotUI.Pages {
                     var tempDir = AppEnvironment.GetTempFolder();
                     Directory.CreateDirectory(tempDir);
 
+                    file.IsProcessing = true;
+
                     queue.EnqueueTask(async (token) => {
                         try {
                             if (result == ContentDialogResult.Primary) {
-                                await snapshotService.PerformSnapshotAsync(file, token, true);
+                                await snapshotService.PerformSnapshotAsync(file, SnapshotMode.Silent, token);
                             }
 
                             await RollbackService.RollbackRepo(file, tempDir, snapshot, token);
@@ -90,6 +92,8 @@ namespace FileSnapshotUI.Pages {
                         }
                         await default(ValueTask);
                     });
+
+                    file.IsProcessing = false;
                 }
             }
         }

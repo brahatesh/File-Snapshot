@@ -73,7 +73,7 @@
         <TitleBar x:Name="AppTitleBar"
               Title="File Snapshot">
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="/Assets/Icon.ico"/>
+                <ImageIconSource ImageSource="/Assets/Square44x44Logo.targetsize-24_altform-unplated.png"/>
             </TitleBar.IconSource>
         </TitleBar>
         

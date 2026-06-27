@@ -5,15 +5,32 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:FileSnapshotUI.Pages"
     xmlns:models="using:FileSnapshotUI.Models"
+    xmlns:converters="using:FileSnapshotUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer VerticalScrollBarVisibility ="Auto" Grid.Row="1">
-        <ItemsControl x:Name="RootItemControl" ItemsSource="{Binding Snapshots}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="models:SnapshotDetails">
-                    <Border 
+    <Page.Resources>
+        <converters:CollectionLengthToVisibilityConverter x:Key="VisibleIfHasItems" />
+        <converters:CollectionLengthToVisibilityConverter x:Key="VisibleIfEmpty" />
+    </Page.Resources>
+
+    <Grid Grid.Row="1">
+
+        <Grid Padding="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              Visibility="{Binding Snapshots.Count, Converter={StaticResource VisibleIfEmpty}, ConverterParameter=Inverse}">
+            <TextBlock
+                Text="No Snapshots"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Style="{StaticResource SubtitleTextBlockStyle}"/>
+        </Grid>
+
+        <ScrollViewer VerticalScrollBarVisibility ="Auto" Visibility="{Binding Snapshots.Count, Converter={StaticResource VisibleIfHasItems}}">
+            <ItemsControl x:Name="RootItemControl" ItemsSource="{Binding Snapshots}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:SnapshotDetails">
+                        <Border 
                         Padding="12"
                         Margin="0,0,0,8"
                         BorderThickness="1"
@@ -21,34 +38,35 @@
                         CornerRadius="8"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" >
 
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="auto" />
-                            </Grid.ColumnDefinitions>
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock 
+                                <TextBlock 
                                 Text="{Binding SnapshotTimeString, Mode=OneWay}"
                                 VerticalAlignment="Center" />
 
-                            <Button
+                                <Button
                                 Grid.Column="1"
                                 Click="RestoreSnapshot_Click"
                                 CommandParameter="{x:Bind}">
-                                <SymbolIcon Symbol="Refresh" />
-                            </Button>
+                                    <SymbolIcon Symbol="Refresh" />
+                                </Button>
 
-                            <Button
+                                <Button
                                 Grid.Column="2"
                                 Click="DeleteSnapshot_Click"
                                 CommandParameter="{x:Bind}">
-                                <SymbolIcon Symbol="Delete" />
-                            </Button>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </ScrollViewer>
+                                    <SymbolIcon Symbol="Delete" />
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
 </Page>

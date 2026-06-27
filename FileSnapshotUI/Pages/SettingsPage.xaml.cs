@@ -142,8 +142,14 @@ namespace FileSnapshotUI.Pages {
                 var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                 queue.EnqueueTask(async (token) => {
                     try {
-                        IEnumerable<string> trackedFiles = file.Snapshots.Last().TrackedFiles;
-                        IEnumerable<string> trackedDirs = file.Snapshots.Last().TrackedDirectories;
+                        IEnumerable<string> trackedFiles = [];
+                        IEnumerable<string> trackedDirs = [];
+                        
+                        if(file.Snapshots.Count>0) {
+                            trackedFiles = file.Snapshots.Last().TrackedFiles;
+                            trackedDirs = file.Snapshots.Last().TrackedDirectories;
+                        }
+
                         await FileOperationsHelper.CopyTrackedFilesAsync(oldDir, newDir, trackedFiles, token, true);
 
                         App.MainDispatcher.TryEnqueue(() => {

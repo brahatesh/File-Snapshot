@@ -44,6 +44,11 @@ namespace FileSnapshotUI {
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(AppTitleBar);
 
+            string iconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Assets", "Icon.ico");
+            if (System.IO.File.Exists(iconPath)) {
+                this.AppWindow.SetIcon(iconPath);
+            }
+
             var initialBgColor = _uiSettings.GetColorValue(UIColorType.Background);
             bool initialIsDarkMode = initialBgColor == Colors.Black;
             foreach (var file in ViewModel.Files) {
