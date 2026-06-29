@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace FileSnapshotUI.Models;
 
+/// <summary>
+/// Represents the details of a specific snapshot, including the associated Git commit 
+/// and the set of files/directories captured at that time.
+/// </summary>
 public class SnapshotDetails {
     private readonly Guid _fileId;
     private readonly DateTime _snapshotTimeUTC;

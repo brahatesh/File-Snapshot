@@ -13,14 +13,10 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-//using WinRT.Interop;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace FileSnapshotUI.Pages {
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// Main root page of the application
     /// </summary>
     public sealed partial class RootPage : Page {
 
@@ -39,7 +35,8 @@ namespace FileSnapshotUI.Pages {
                 RootViewModel = window.ViewModel;
             }
 
-            DetailsFrame.Navigate(typeof(EmptyDetailsPage));
+            // Set details frame to DetailsPage
+            DetailsFrame.Navigate(typeof(DetailsPage), null, new SuppressNavigationTransitionInfo());
         }
 
         private async unsafe void AddButton_Click(object sender, RoutedEventArgs e) {
@@ -53,6 +50,7 @@ namespace FileSnapshotUI.Pages {
 
         private async void DeleteButton_Click(object sender, RoutedEventArgs e) {
             if (FilesListView.SelectedItem is FileItem selected) {
+                // Ask for confirmation before deleting
                 ContentDialog confirmDialog = new() {
                     XamlRoot = this.XamlRoot,
                     Title = "Remove file",
@@ -61,12 +59,12 @@ namespace FileSnapshotUI.Pages {
                     SecondaryButtonText = "Cancel"
                 };
                 ContentDialogResult result = await confirmDialog.ShowAsync();
+
                 if (result == ContentDialogResult.Primary) {
                     var backupPath = selected.BackupPath;
                     RootViewModel.Files.Remove(selected);
-                    //DeleteButton.IsEnabled = false;
-                    //CreateSnapshotButton.IsEnabled = false;
 
+                    // Add delete task to queue
                     var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                     queue.EnqueueTask(async (token) => {
                         try {
@@ -87,6 +85,7 @@ namespace FileSnapshotUI.Pages {
             }
         }
 
+        // Whenever new file is selected from list of files, update the UI and SelectedFile
         private void FilesListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (RootViewModel.SelectedFile?.Snapshots != null && _snapshotChangeHandler != null) {
                 RootViewModel.SelectedFile.Snapshots.CollectionChanged -= _snapshotChangeHandler;
@@ -94,8 +93,6 @@ namespace FileSnapshotUI.Pages {
             }
 
             RootViewModel.SelectedFile = FilesListView.SelectedItem as FileItem;
-            //DeleteButton.IsEnabled = RootViewModel.SelectedFile != null;
-            //CreateSnapshotButton.IsEnabled = RootViewModel.SelectedFile != null;
             LastBackupStringUI.Visibility = RootViewModel.SelectedFile != null ? Visibility.Visible : Visibility.Collapsed;
 
             if (RootViewModel.SelectedFile?.Snapshots != null) {
@@ -119,16 +116,10 @@ namespace FileSnapshotUI.Pages {
 
         private void UpdateDetailsFrame() {
             var selected = RootViewModel.SelectedFile;
-            //if (selected != null && selected.Snapshots != null && selected.Snapshots.Count > 0) {
-            //    // Pass the selected FileItem to DetailsPage as parameter
-            //    DetailsFrame.Navigate(typeof(DetailsPage), selected, new SuppressNavigationTransitionInfo());
-            //}
-            //else {
-            //    DetailsFrame.Navigate(typeof(EmptyDetailsPage), null, new SuppressNavigationTransitionInfo());
-            //}
             DetailsFrame.Navigate(typeof(DetailsPage), selected, new SuppressNavigationTransitionInfo());
         }
 
+        // Manual snapshot creation
         private void CreateSnapshot_Click(object sender, RoutedEventArgs e) {
             var selected = RootViewModel.SelectedFile;
             if (selected != null) {
@@ -138,11 +129,10 @@ namespace FileSnapshotUI.Pages {
                     await snapshotService.PerformSnapshotAsync(selected, SnapshotMode.Manual, token);
                     await default(ValueTask);
                 });
-                //selected.AddSnapshot();
-                //NotificationService.Instance.AddNotification(selected, "Created snapshot");
             }
         }
 
+        // Select and item, made for when open is clicked on notification page
         public void SelectFile(FileItem item) {
             FilesListView.SelectedItem = item;
         }

@@ -6,11 +6,16 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
 
 namespace FileSnapshotUI.Helpers {
+    /// <summary>
+    /// Provides utility methods to invoke native Win32 File and Folder picker dialogs.
+    /// </summary>
     public static class OpenDialogHelper {
         /// <summary>
-        /// Opens a native Win32 File Open Dialog and returns the selected file path.
-        /// Returns null if the user cancels or an error occurs.
+        /// Opens a native Win32 File Open Dialog to select a single file.
         /// </summary>
+        /// <param name="hostWindow">The parent <see cref="Window"/> to attach the modal dialog to.</param>
+        /// <returns>The absolute path of the selected file, or <c>null</c> if the user cancels or an error occurs.</returns>
+        /// <remarks>This code was generated with AI.</remarks>
         public static unsafe string? PickSingleFile(Window hostWindow) {
             // Generate standard local copies of the Guids
             Guid clsid = typeof(FileOpenDialog).GUID;
@@ -67,6 +72,14 @@ namespace FileSnapshotUI.Helpers {
             return null;
         }
 
+        /// <summary>
+        /// Opens a native Win32 Folder Picker Dialog to select a single folder.
+        /// </summary>
+        /// <param name="hostWindow">The parent <see cref="Window"/> to attach the modal dialog to.</param>
+        /// <returns>The absolute path of the selected folder, or <c>null</c> if the user cancels or an error occurs.</returns>
+        /// <remarks>
+        /// This code was generates using AI.
+        /// </remarks>
         public static unsafe string? PickSingleFolder(Window hostWindow) {
             Guid clsid = typeof(FileOpenDialog).GUID;
             Guid iid = typeof(IFileOpenDialog).GUID;

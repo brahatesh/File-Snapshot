@@ -14,22 +14,27 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <!--Header-->
         <TextBlock
             Text="Settings"
             Style="{StaticResource TitleTextBlockStyle}"
             Margin="0,0,0,10" />
 
+        <!--Content-->
         <ScrollViewer 
             Grid.Row="1"
             VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="50">
+                <!--File Settings-->
                 <StackPanel x:Name="FileSettingsPanel">
+                    <!--Subheading-->
                     <TextBlock
                         Text="File settings"
                         Style="{StaticResource SubtitleTextBlockStyle}"
                         Margin="0,0,0,10" />
                     
                     <StackPanel>
+                        <!--File Path-->
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120" />
@@ -60,6 +65,7 @@
                             </Button>
                         </Grid>
 
+                        <!--Backup Path-->
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120" />
@@ -90,6 +96,7 @@
                             </Button>
                         </Grid>
 
+                        <!--Backup duration-->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -117,29 +124,33 @@
                                 VerticalAlignment="Bottom">
                                 <FontIcon Glyph="&#xE105;" />
                             </Button>
-                                
                         </Grid>
                     </StackPanel>
                 </StackPanel>
+                <!--Application settings-->
                 <StackPanel>
+                    <!--Subheader-->
                     <TextBlock
                         Text="Application settings"
                         Style="{StaticResource SubtitleTextBlockStyle}"
                         Margin="0,0,0,10" />
 
                     <StackPanel>
+                        <!--Enable tray icon-->
                         <ToggleSwitch 
                             x:Name="TrayIconToggle"
                             Header="Show System Tray Icon"
                             IsOn="True"
                             Toggled="TrayIconToggle_Toggled"/>
 
+                        <!--Minimize to tray-->
                         <ToggleSwitch 
                             x:Name="MinimizeToTrayToggle"
                             Header="Minimize to System Tray"
                             IsOn="True"
                             Toggled="MinimizeToTrayToggle_Toggled"/>
 
+                        <!--Close minimize to tray-->
                         <ToggleSwitch 
                             x:Name="CloseButtonTrayToggle"
                             Header="Close Button Minimizes to System Tray"

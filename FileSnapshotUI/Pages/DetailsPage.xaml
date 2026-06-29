@@ -10,15 +10,16 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <!--Converter to determine whether to show empty or items-->
     <Page.Resources>
         <converters:CollectionLengthToVisibilityConverter x:Key="VisibleIfHasItems" />
         <converters:CollectionLengthToVisibilityConverter x:Key="VisibleIfEmpty" />
     </Page.Resources>
 
     <Grid Grid.Row="1">
-
         <Grid Padding="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               Visibility="{Binding Snapshots.Count, Converter={StaticResource VisibleIfEmpty}, ConverterParameter=Inverse}">
+            <!--Displayed when no snapshots present-->
             <TextBlock
                 Text="No Snapshots"
                 HorizontalAlignment="Center"
@@ -26,6 +27,7 @@
                 Style="{StaticResource SubtitleTextBlockStyle}"/>
         </Grid>
 
+        <!--Displayed when snapshots available, based on datatemplate-->
         <ScrollViewer VerticalScrollBarVisibility ="Auto" Visibility="{Binding Snapshots.Count, Converter={StaticResource VisibleIfHasItems}}">
             <ItemsControl x:Name="RootItemControl" ItemsSource="{Binding Snapshots}">
                 <ItemsControl.ItemTemplate>
@@ -45,10 +47,12 @@
                                     <ColumnDefinition Width="auto" />
                                 </Grid.ColumnDefinitions>
 
+                                <!--Time of snapshot-->
                                 <TextBlock 
                                 Text="{Binding SnapshotTimeString, Mode=OneWay}"
                                 VerticalAlignment="Center" />
 
+                                <!--Button to restore snapshot-->
                                 <Button
                                 Grid.Column="1"
                                 Click="RestoreSnapshot_Click"
@@ -56,6 +60,7 @@
                                     <SymbolIcon Symbol="Refresh" />
                                 </Button>
 
+                                <!--Button to delete snapshot-->
                                 <Button
                                 Grid.Column="2"
                                 Click="DeleteSnapshot_Click"

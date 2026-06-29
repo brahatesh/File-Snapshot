@@ -26,6 +26,7 @@ namespace FileSnapshotUI {
 
             this.InitializeComponent();
 
+            // Init system tray
             systemTrayManager = new SystemTrayManager(helper) {
                 IsIconVisible = true,
                 IconToolTip = "File Snapshot",
@@ -36,19 +37,23 @@ namespace FileSnapshotUI {
             Closed += (_, _) => systemTrayManager?.Dispose();
             Closed += (sender, args) => AppNotificationManager.Default.Unregister();
 
+            // Get UI settings to detemine dark mode
             _uiSettings = new UISettings();
             _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
 
             RootFrame.Navigate(typeof(Pages.RootPage), this);
 
+            // Modern title bar
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(AppTitleBar);
 
+            // Set app icon for task bar
             string iconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Assets", "Icon.ico");
             if (System.IO.File.Exists(iconPath)) {
                 this.AppWindow.SetIcon(iconPath);
             }
 
+            // Check dark mode and set required variables
             var initialBgColor = _uiSettings.GetColorValue(UIColorType.Background);
             bool initialIsDarkMode = initialBgColor == Colors.Black;
             foreach (var file in ViewModel.Files) {
@@ -56,6 +61,7 @@ namespace FileSnapshotUI {
             }
         }
 
+        // Open drawer for notifications and settings. Also sets scrim visibility.
         public void OpenDrawer(DrawerContent content) {
             DrawerRoot.Visibility = Visibility.Visible;
             DrawerRoot.IsHitTestVisible = true;
@@ -92,6 +98,7 @@ namespace FileSnapshotUI {
             _isDrawerOpen = true;
         }
 
+        // Closes notification-settings drawer and hides scrim
         public void CloseDrawer() {
             if (!_isDrawerOpen) return;
 
@@ -116,6 +123,7 @@ namespace FileSnapshotUI {
             _isDrawerOpen = false;
         }
 
+        // Set state when storyboard anim completed for closing drawer
         private void CloseDrawerStoryboard_Completed(object? sender, object e) {
             CloseDrawerStoryboard.Completed -= CloseDrawerStoryboard_Completed;
             DrawerRoot.Visibility = Visibility.Collapsed;
@@ -126,10 +134,13 @@ namespace FileSnapshotUI {
             Scrim.Opacity = 0;
         }
 
+        // Close drawer when scrim is tapped
         private void Scrim_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e) => CloseDrawer();
 
+        // Close button for drawer
         private void DrawerTabButton_Click(object sender, RoutedEventArgs e) => CloseDrawer();
 
+        // Detect theme change
         private void UiSettings_ColorValuesChanged(UISettings sender, object args) {
             DispatcherQueue.TryEnqueue(() => {
                 var bgColor = sender.GetColorValue(UIColorType.Background);
@@ -141,6 +152,7 @@ namespace FileSnapshotUI {
             });
         }
 
+        // Select a particular file from the list. Needed for notifications.
         public void SelectFile(FileItem item) {
             CloseDrawer();
 

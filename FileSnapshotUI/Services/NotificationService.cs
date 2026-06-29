@@ -6,21 +6,39 @@ using System;
 
 namespace FileSnapshotUI.Services;
 
+/// <summary>
+/// Manages application notifications by updating the UI view model and 
+/// triggering Windows system toast notifications.
+/// </summary>
 public class NotificationService {
-    //private static NotificationService? _instance;
+    /// <summary>
+    /// Gets the <see cref="NotificationViewModel"/> that tracks the collection 
+    /// of active notifications within the application.
+    /// </summary>
     public NotificationViewModel ViewModel { get; } = new();
 
-    //public static NotificationService Instance => _instance ??= new NotificationService();
-
+    /// <summary>
+    /// Adds a new notification to the application's history and displays a 
+    /// Windows toast notification to the user.
+    /// </summary>
+    /// <param name="fileItem">The <see cref="FileItem"/> associated with the event.</param>
+    /// <param name="message">The message content to display.</param>
     public void AddNotification(FileItem fileItem, string message) {
         ViewModel.AddNotification(fileItem, message);
         SendWindowsToast(fileItem?.FileName, message);
     }
 
+    /// <summary>
+    /// Removes a notification from the application's history by its unique identifier.
+    /// </summary>
+    /// <param name="notificationId">The <see cref="Guid"/> of the notification to remove.</param>
     public void RemoveNotification(Guid notificationId) {
         ViewModel.RemoveNotification(notificationId);
     }
 
+    /// <summary>
+    /// Builds and displays a native Windows App Notification (toast).
+    /// </summary>
     private static void SendWindowsToast(string? fileName, string message) {
         try {
             string title = string.IsNullOrEmpty(fileName) ? "File Snapshot" : $"Snapshot: {fileName}";

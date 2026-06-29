@@ -54,15 +54,18 @@
                                     Grid.Column="1"
                                     VerticalAlignment="Top"
                                     Spacing="4">
+                                    <!--File Name-->
                                     <TextBlock
                                         Text="{Binding FileItem.FileName}"
                                         Style="{StaticResource SubtitleTextBlockStyle}"
                                         TextWrapping="WrapWholeWords" />
+                                    <!--Notification message-->
                                     <TextBlock
                                         Text="{Binding Message}"
                                         Style="{StaticResource BodyTextBlockStyle}"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         TextWrapping="WrapWholeWords" />
+                                    <!--Notification Time-->
                                     <TextBlock
                                         Text="{Binding CreatedAtLocal}"
                                         Style="{StaticResource CaptionTextBlockStyle}"
@@ -74,11 +77,13 @@
                                     Grid.Column="2"
                                     VerticalAlignment="Top"
                                     Spacing="8">
+                                    <!--Open button to open file that created notification-->
                                     <Button
                                         Content="Open"
                                         Click="OnNotificationClicked"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Width="88" />
+                                    <!--Delete notification-->
                                     <Button
                                         Content="Remove"
                                         Click="OnRemoveNotification"
@@ -91,7 +96,7 @@
             </ItemsControl>
         </ScrollViewer>
             
-            <!-- Empty State -->
+        <!-- Empty State -->
         <StackPanel
                 x:Name="EmptyState"
                 Grid.Row="1"

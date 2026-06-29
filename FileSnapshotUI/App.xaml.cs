@@ -20,7 +20,7 @@ namespace FileSnapshotUI {
         private readonly IHost _host;
         public static IServiceProvider Services { get; private set; }
 
-        // --- NATIVE WIN32 APIs ---
+        // --- NATIVE WIN32 APIs for restoring app on windows notification click ---
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -33,6 +33,7 @@ namespace FileSnapshotUI {
         public static void Main(string[] args) {
             WinRT.ComWrappersSupport.InitializeComWrappers();
 
+            // Instance detection, kill if duplicate spawns, restore existing instance
             var mainInstance = AppInstance.GetCurrent();
             var activationArgs = mainInstance.GetActivatedEventArgs();
 
@@ -46,6 +47,7 @@ namespace FileSnapshotUI {
 
             keyInstance.Activated += KeyInstanceActivated;
 
+            // Dispatcher for making changes in UI thread
             Application.Start((p) => {
                 var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
                 SynchronizationContext.SetSynchronizationContext(context);
@@ -53,14 +55,17 @@ namespace FileSnapshotUI {
             });
         }
 
+        // Restore instance
         private static void KeyInstanceActivated(object? sender, AppActivationArguments e) {
             BringWindowToFront();
         }
 
+        // Restore instance when windows notification clicked
         private void NotificationManager_NotificationInvoked(AppNotificationManager sender, AppNotificationActivatedEventArgs args) {
             BringWindowToFront();
         }
 
+        // Bring window to focus and restore window
         private static void BringWindowToFront() {
             if (MainDispatcher != null && m_window != null) {
                 MainDispatcher.TryEnqueue(() => {
@@ -75,10 +80,12 @@ namespace FileSnapshotUI {
         public App() {
             this.InitializeComponent();
 
+            // Windows notification
             AppNotificationManager.Default.NotificationInvoked += NotificationManager_NotificationInvoked;
             string appIconPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Assets", "Icon.ico");
             AppNotificationManager.Default.Register("File Snapshot", new Uri(appIconPath));
 
+            // Host for configuration sharing with background threads and UI
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) => {
                     services.AddSingleton<NotificationService>();
@@ -96,6 +103,7 @@ namespace FileSnapshotUI {
         }
 
         protected override async void OnLaunched(LaunchActivatedEventArgs args) {
+            // Dispatcher for UI thread
             MainDispatcher = DispatcherQueue.GetForCurrentThread();
 
             await _host.StartAsync();
@@ -103,16 +111,19 @@ namespace FileSnapshotUI {
             m_window = new MainWindow();
             m_window.Activate();
 
+            // Set min window size
             windowHelper = new WindowHelper(m_window);
             windowHelper.SetWindowMinMaxSize(new WindowHelper.POINT() { x = 700, y = 500 });
 
+            // Hide window, so only app only starts in system tray
             m_window.AppWindow.Hide();
 
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
         }
 
         private async void CurrentDomain_ProcessExit(object? sender, EventArgs e) {
-            await _host.StopAsync(TimeSpan.FromSeconds(5));
+            // On kill, kill background tasks
+            await _host.StopAsync(TimeSpan.FromSeconds(60));
             _host.Dispose();
         }
     }

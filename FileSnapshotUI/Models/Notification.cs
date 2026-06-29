@@ -2,6 +2,9 @@
 
 namespace FileSnapshotUI.Models;
 
+/// <summary>
+/// Represents a notification related to a specific file snapshot event.
+/// </summary>
 public class Notification {
     private Guid _id = Guid.NewGuid();
 

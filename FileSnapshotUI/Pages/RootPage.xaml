@@ -129,11 +129,11 @@
                         IsEnabled="{x:Bind RootViewModel.SelectedFile.IsNotProcessing, Mode=OneWay, FallbackValue=False}"
                         Content="Create Snapshot" />
                 </Grid>
-
-                <Frame x:Name="DetailsFrame" Grid.Row="1" Margin="0,10,0,10">
-                    <!--ContentPresenter x:Name="DetailsPresenter"/-->
-                </Frame>
-
+                
+                <!--Details (snapshots)-->
+                <Frame x:Name="DetailsFrame" Grid.Row="1" Margin="0,10,0,10" />
+                
+                <!--Last backup time string-->
                 <Grid Grid.Row="2" x:Name="LastBackupStringUI" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />

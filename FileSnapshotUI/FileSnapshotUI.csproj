@@ -24,7 +24,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Pages\DetailsPage.xaml" />
-    <None Remove="Pages\EmptyDetailsPage.xaml" />
     <None Remove="Pages\Notifications.xaml" />
     <None Remove="Pages\RootPage.xaml" />
   </ItemGroup>
@@ -59,12 +58,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6584" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250916003" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Page Update="Pages\EmptyDetailsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\DetailsPage.xaml">

@@ -16,6 +16,9 @@ using System.Threading.Tasks;
 using SystemTray.Core;
 
 namespace FileSnapshotUI.Pages {
+    /// <summary>
+    /// Settings page for file settings and global app settings
+    /// </summary>
     public sealed partial class SettingsPage : Page {
         public RootViewModel? ViewModel;
         private SystemTrayManager? systemTrayManager;
@@ -25,10 +28,6 @@ namespace FileSnapshotUI.Pages {
         public SettingsPage() {
             this.InitializeComponent();
             _notificationService = App.Services.GetRequiredService<NotificationService>();
-        }
-
-        public void SetManager(SystemTrayManager manager) {
-            systemTrayManager = manager;
         }
 
         private void TrayIconToggle_Toggled(object sender, RoutedEventArgs e) {
@@ -75,8 +74,11 @@ namespace FileSnapshotUI.Pages {
 
         private async void SettingsEditFullPath_Click(object sender, RoutedEventArgs e) {
             if (_hostWindow == null || ViewModel == null || ViewModel.SelectedFile == null) return;
+            // Get new file path
             var newPath = OpenDialogHelper.PickSingleFile(_hostWindow);
+            
             if (newPath != null) {
+                // File type mismatch, cancel
                 if (Path.GetExtension(newPath) != Path.GetExtension(ViewModel.SelectedFile.FullPath)) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
@@ -88,6 +90,8 @@ namespace FileSnapshotUI.Pages {
                     await dialog.ShowAsync();
                     return;
                 }
+
+                // File name mismatch, ask for confirmation
                 if (Path.GetFileName(newPath) != ViewModel.SelectedFile.FileName) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
@@ -107,11 +111,15 @@ namespace FileSnapshotUI.Pages {
 
         private async void SettingsEditBackupPath_Click(object sender, RoutedEventArgs e) {
             if (ViewModel == null || ViewModel.SelectedFile == null || _hostWindow == null) return;
+
+            // Pick folder for backup
             var newDir = OpenDialogHelper.PickSingleFolder(_hostWindow);
+
             var oldDir = ViewModel.SelectedFile.BackupPath;
             var file = ViewModel.SelectedFile;
 
             if (newDir != null && newDir != oldDir) {
+                // Check if app can read and write to dir
                 if (!FileOperationsHelper.CanReadFromDir(newDir) || !FileOperationsHelper.CanWriteToDir(newDir)) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
@@ -124,6 +132,7 @@ namespace FileSnapshotUI.Pages {
                     return;
                 }
 
+                // Check if dir is already a repo, if yes, cancel operation
                 if (Repository.IsValid(newDir)) {
                     ContentDialog dialog = new() {
                         XamlRoot = this.XamlRoot,
@@ -139,6 +148,7 @@ namespace FileSnapshotUI.Pages {
                 file.IsProcessing = true;
                 file.BackupPath = newDir;
 
+                // Copy all tracked snapshot files to new backup location
                 var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
                 queue.EnqueueTask(async (token) => {
                     try {
@@ -188,6 +198,7 @@ namespace FileSnapshotUI.Pages {
             string durationString = BackupDuration.Text;
             TimeSpan duration;
             try {
+                // Convert to timespan and verify if in bounds
                 duration = TimeSpanJiraStringConverter.JiraToTimeSpan(durationString);
                 BackupDurationError.Visibility = Visibility.Collapsed;
                 BackupDuration.ClearValue(TextBox.BorderBrushProperty);
@@ -196,6 +207,7 @@ namespace FileSnapshotUI.Pages {
                     throw new ArgumentOutOfRangeException(nameof(duration), "Duration must be between 1 minute and 365 days.");
             }
             catch (ArgumentException ex) {
+                // In case of error, show error text and set red color border
                 if (ex is ArgumentOutOfRangeException) BackupDurationError.Text = "Please enter a duration between 1m and 365d.";
                 else BackupDurationError.Text = "Invalid format. Please use format like '1d 2h 30m'.";
                 BackupDurationError.Visibility = Visibility.Visible;

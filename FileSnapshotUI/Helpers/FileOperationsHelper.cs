@@ -10,7 +10,18 @@ using System.Threading.Tasks;
 
 namespace FileSnapshotUI.Helpers;
 
+/// <summary>
+/// Provides utility methods for performing asynchronous file system operations 
+/// and sanitizing Microsoft Office documents.
+/// </summary>
 public static class FileOperationsHelper {
+    /// <summary>
+    /// Recursively copies a directory to a destination, respecting cancellation tokens.
+    /// </summary>
+    /// <param name="sourceDir">The path to the source directory.</param>
+    /// <param name="destDir">The path to the destination directory.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static async Task CopyDirectoryAsync(string sourceDir, string destDir, CancellationToken token) {
         var dir = new DirectoryInfo(sourceDir);
         if (!dir.Exists) throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
@@ -19,14 +30,16 @@ public static class FileOperationsHelper {
 
         Directory.CreateDirectory(destDir);
 
+        // Copy each file in directory
         foreach (FileInfo file in dir.GetFiles()) {
             token.ThrowIfCancellationRequested();
             string targetFilePath = Path.Combine(destDir, file.Name);
             using var sourceStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.Asynchronous);
             using var destStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
-            await sourceStream.CopyToAsync(destStream, CancellationToken.None);
+            await sourceStream.CopyToAsync(destStream, CancellationToken.None); // Cancellation Token set to None to not cancel mid copy
         }
 
+        // Copy directory and resurive call to copy contents of directory
         foreach (DirectoryInfo subDir in dir.GetDirectories()) {
             token.ThrowIfCancellationRequested();
             if (string.Equals(subDir.FullName, absoluteDestDir, StringComparison.OrdinalIgnoreCase)) {
@@ -37,6 +50,15 @@ public static class FileOperationsHelper {
         }
     }
 
+    /// <summary>
+    /// Copies a single file from a source path to a destination directory asynchronously.
+    /// </summary>
+    /// <param name="sourceFile">The full path of the source file to copy.</param>
+    /// <param name="destDir">The destination directory where the file will be copied.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous copy operation.</returns>
+    /// <exception cref="DirectoryNotFoundException">Thrown if the destination directory does not exist.</exception>
+    /// <exception cref="FileNotFoundException">Thrown if the source file does not exist.</exception>
     public static async Task CopyFileAsync(string sourceFile, string destDir, CancellationToken token) {
         token.ThrowIfCancellationRequested();
 
@@ -51,10 +73,23 @@ public static class FileOperationsHelper {
         using FileStream sourceStream = new(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, true);
         using FileStream destStream = new(destFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
 
-        await sourceStream.CopyToAsync(destStream, CancellationToken.None);
+        await sourceStream.CopyToAsync(destStream, CancellationToken.None); // Cancellation Token set to None to not cancel mid copy
     }
 
+    /// <summary>
+    /// Asynchronously copies a specified list of tracked files from a source directory to a destination directory.
+    /// </summary>
+    /// <param name="sourceDir">The root directory where the tracked files are located.</param>
+    /// <param name="destDir">The root directory where the files should be copied.</param>
+    /// <param name="trackedFiles">A collection of relative file paths to be copied.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <param name="moveGit">If true, the entire .git directory is copied to the destination.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method is built specifically to copy files tracked by the snapshot.
+    /// </remarks>
     public static async Task CopyTrackedFilesAsync(string sourceDir, string destDir, IEnumerable<string> trackedFiles, CancellationToken token, bool moveGit = false) {
+        // Copies the git repo
         if(moveGit) {
             string sourceGit = Path.Combine(sourceDir, ".git");
             string destGit = Path.Combine(destDir, ".git");
@@ -63,6 +98,7 @@ public static class FileOperationsHelper {
             }
         }
 
+        // Copy all tracked files
         foreach (var relPath in trackedFiles) {
             token.ThrowIfCancellationRequested();
             string srcFile = Path.Combine(sourceDir, relPath);
@@ -77,7 +113,20 @@ public static class FileOperationsHelper {
         }
     }
 
+    /// <summary>
+    /// Asynchronously deletes tracked files and cleans up the directory structure.
+    /// </summary>
+    /// <param name="dirPath">The root directory path from which to delete files.</param>
+    /// <param name="trackedFiles">A collection of relative paths of files to be deleted.</param>
+    /// <param name="trackedDirectories">A collection of relative paths of directories to be pruned.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <param name="deleteGit">If true, the .git directory within <paramref name="dirPath"/> is also removed.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method is built to delete tracked snapshot files. Also, deletes empty tracked directories.
+    /// </remarks>
     public static async Task DeleteTrackedFilesAsync(string dirPath, IEnumerable<string> trackedFiles, IEnumerable<string> trackedDirectories, CancellationToken token, bool deleteGit = false) {
+        // Delete all tracked files
         foreach (var relPath in trackedFiles) {
             token.ThrowIfCancellationRequested();
             string targetFile = Path.Combine(dirPath, relPath);
@@ -87,6 +136,7 @@ public static class FileOperationsHelper {
             }
         }
 
+        // Check all tracked directories (from deepest to shallowest) then delete if empty
         var orderedDirs = trackedDirectories.OrderByDescending(d => d.Length);
         foreach (var relDir in orderedDirs) {
             string targetDir = Path.Combine(dirPath, relDir);
@@ -95,44 +145,36 @@ public static class FileOperationsHelper {
             }
         }
 
+        // Deletes git repo is requested
         if (deleteGit) {
             string gitDir = Path.Combine(dirPath, ".git");
             if (Directory.Exists(gitDir)) {
                 var dir = new DirectoryInfo(gitDir);
                 RemoveReadOnlyAttributes(dir);
                 Directory.Delete(gitDir, true);
-                //await DeleteDirectoryASync(gitDir, token, true); // deleteGit = true resets attributes internally
             }
         }
 
-        //CleanEmptyDirectories(dirPath);
-        if(Directory.Exists(dirPath) && !Directory.EnumerateFileSystemEntries(dirPath).Any()) {
+        // Deletes dirPath directory is empty
+        if (Directory.Exists(dirPath) && !Directory.EnumerateFileSystemEntries(dirPath).Any()) {
             Directory.Delete(dirPath);
         }
     }
 
-    //private static void CleanEmptyDirectories(string startLocation) {
-    //    if (!Directory.Exists(startLocation)) return;
-
-    //    foreach (var directory in Directory.GetDirectories(startLocation)) {
-    //        CleanEmptyDirectories(directory);
-
-    //        // If the sub-directory is empty, delete it
-    //        if (!Directory.EnumerateFileSystemEntries(directory).Any()) {
-    //            Directory.Delete(directory, false);
-    //        }
-    //    }
-
-    //    // Check if the root startLocation is empty after children were processed
-    //    if (Directory.Exists(startLocation) && !Directory.EnumerateFileSystemEntries(startLocation).Any()) {
-    //        Directory.Delete(startLocation, false);
-    //    }
-    //}
-
+    /// <summary>
+    /// Verifies whether the application has permission to read entries from the specified directory.
+    /// </summary>
+    /// <param name="dirPath">The full path of the directory to check.</param>
+    /// <returns>
+    /// <c>true</c> if the directory exists and is accessible; 
+    /// <c>false</c> if the path is invalid, does not exist, or an access exception occurs.
+    /// </returns>
     public static bool CanReadFromDir(string dirPath) {
         if (string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath)) return false;
 
         try {
+            // Test if app can fetch entries in dir. Any() is needed because
+            // EnumerateFileSystemEntries might not fail even with no permission.
             var testRead = Directory.EnumerateFileSystemEntries(dirPath).Any();
             return true;
         }
@@ -141,10 +183,19 @@ public static class FileOperationsHelper {
         }
     }
 
+    /// <summary>
+    /// Verifies whether the application has permission to create files within the specified directory.
+    /// </summary>
+    /// <param name="dirPath">The full path of the directory to check.</param>
+    /// <returns>
+    /// <c>true</c> if the application can successfully create and write 
+    /// in the directory; otherwise, <c>false</c>.
+    /// </returns>
     public static bool CanWriteToDir(string dirPath) {
         if (string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath)) return false;
 
         try {
+            // Write zero bytes to a temp file to test write permission
             string tempFile = Path.Combine(dirPath, $"io_test_{Guid.NewGuid():N}.tmp");
             using FileStream fs = new(
                 tempFile,
@@ -162,46 +213,21 @@ public static class FileOperationsHelper {
         }
     }
 
-    public static bool CanCopyFile(string filePath) {
-        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
-            return false;
-        }
-
-        try {
-            using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            return true;
-        }
-        catch (Exception) {
-            return false;
-        }
-    }
-
-    //public static async Task DeleteDirectoryASync(string dirPath, CancellationToken token, bool deleteGit = true) {
-    //    var dir = new DirectoryInfo(dirPath);
-    //    if (!dir.Exists) return;
-
-    //    if (deleteGit) {
-    //        RemoveReadOnlyAttributes(dir);
-    //        Directory.Delete(dirPath, true);
-    //    }
-    //    else {
-    //        foreach (FileInfo file in dir.GetFiles()) {
-    //            file.Attributes = FileAttributes.Normal;
-    //            File.Delete(file.FullName);
-    //        }
-
-    //        foreach (DirectoryInfo subDir in dir.GetDirectories()) {
-    //            if (subDir.Name == ".git") continue;
-    //            await DeleteDirectoryASync(subDir.FullName, token);
-    //        }
-    //    }
-    //}
-
+    /// <summary>
+    /// Recursively removes the <see cref="FileAttributes.ReadOnly"/> attribute from a 
+    /// directory and all its contents.
+    /// </summary>
+    /// <param name="directory">The <see cref="DirectoryInfo"/> representing the root of the structure to modify.</param>
+    /// <remarks>
+    /// This method is primarily to remove ReadOnly attribute from files stored in .git repo.
+    /// </remarks>
     private static void RemoveReadOnlyAttributes(DirectoryInfo directory) {
+        // Set attribute for all files
         foreach (FileInfo file in directory.GetFiles("*", SearchOption.AllDirectories)) {
             file.Attributes = FileAttributes.Normal;
         }
 
+        // Set attribute for all dirs
         foreach (DirectoryInfo dir in directory.GetDirectories("*", SearchOption.AllDirectories)) {
             dir.Attributes = FileAttributes.Normal;
         }
@@ -209,6 +235,29 @@ public static class FileOperationsHelper {
         directory.Attributes = FileAttributes.Normal;
     }
 
+    /// <summary>
+    /// Sanitizes an Excel workbook by removing metadata, printer settings, 
+    /// and internal tracking parts unnecessary for snapshotting.
+    /// </summary>
+    /// <param name="filePath">The absolute path to the Excel (.xlsx) file.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <remarks>
+    /// This method performs the following cleanup operations:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>Removes all <see cref="SpreadsheetPrinterSettingsPart"/> parts from worksheets.</description>
+    /// </item>
+    /// <item>
+    /// <description>Deletes the <see cref="CalculationChainPart"/> to prevent issues with cross-session calculations.</description>
+    /// </item>
+    /// <item>
+    /// <description>Removes <see cref="WorkbookRevisionHeaderPart"/> to strip revision history.</description>
+    /// </item>
+    /// <item>
+    /// <description>Deletes <see cref="CustomXmlMappingsPart"/> to remove custom XML metadata.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     public static void SanitizeExcelFile(string filePath, CancellationToken token) {
         token.ThrowIfCancellationRequested();
 
@@ -236,6 +285,26 @@ public static class FileOperationsHelper {
         }
     }
 
+    /// <summary>
+    /// Sanitizes a PowerPoint presentation by removing comments, author metadata, 
+    /// and custom XML parts.
+    /// </summary>
+    /// <param name="filePath">The absolute path to the PowerPoint (.pptx) file.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <remarks>
+    /// This method performs the following cleanup operations:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>Removes all <see cref="CustomXmlPart"/> objects from the presentation.</description>
+    /// </item>
+    /// <item>
+    /// <description>Deletes the <see cref="CommentAuthorsPart"/> to strip comment author metadata.</description>
+    /// </item>
+    /// <item>
+    /// <description>Removes <see cref="SlideCommentsPart"/> from every slide within the presentation.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     public static void SanitizePowerPointFile(string filePath, CancellationToken token) {
         token.ThrowIfCancellationRequested();
 
@@ -259,6 +328,29 @@ public static class FileOperationsHelper {
         }
     }
 
+    /// <summary>
+    /// Sanitizes a Word document by removing sensitive metadata, comments, 
+    /// printer settings, and web settings.
+    /// </summary>
+    /// <param name="filePath">The absolute path to the Word (.docx) file.</param>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
+    /// <remarks>
+    /// This method performs the following cleanup operations:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>Removes all <see cref="CustomXmlPart"/> objects.</description>
+    /// </item>
+    /// <item>
+    /// <description>Deletes the <see cref="WebSettingsPart"/> to remove web-related formatting data.</description>
+    /// </item>
+    /// <item>
+    /// <description>Removes all <see cref="WordprocessingPrinterSettingsPart"/> parts.</description>
+    /// </item>
+    /// <item>
+    /// <description>Deletes the <see cref="WordprocessingCommentsPart"/> to strip document comments.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     public static void SanitizeWordFile(string filePath, CancellationToken token) {
         token.ThrowIfCancellationRequested();
 

@@ -4,6 +4,17 @@ using System.Runtime.InteropServices;
 
 namespace FileSnapshotUI.Helpers;
 
+/// <summary>
+/// A helper class used to enforce minimum and maximum window size constraints 
+/// by hooking into the Win32 window procedure.
+/// </summary>
+/// <remarks>
+/// This implementation was adapted from the WinUI-Gallery repository:
+/// <list type="bullet">
+/// <item><description><a href="https://github.com/microsoft/WinUI-Gallery/blob/be0c565cd3a4b9ba40375622904297e1548875fc/WinUIGallery/Helpers/Win32WindowHelper.cs">Win32WindowHelper.cs</a></description></item>
+/// <item><description><a href="https://github.com/microsoft/WinUI-Gallery/blob/be0c565cd3a4b9ba40375622904297e1548875fc/WinUIGallery/Helpers/Win32.cs">Win32.cs</a></description></item>
+/// </list>
+/// </remarks>
 internal class WindowHelper(Window window) {
     private POINT? minWindowSize = null;
     private POINT? maxWindowSize = null;
@@ -46,6 +57,11 @@ internal class WindowHelper(Window window) {
 
     private static nint GetWindowHandleForCurrentWindow(object target) => WinRT.Interop.WindowNative.GetWindowHandle(target);
 
+    /// <summary>
+    /// Configures the minimum and maximum trackable size for the window.
+    /// </summary>
+    /// <param name="minWindowSize">Optional minimum size (<see cref="POINT"/>) for the window.</param>
+    /// <param name="maxWindowSize">Optional maximum size (<see cref="POINT"/>) for the window.</param>
     public void SetWindowMinMaxSize(POINT? minWindowSize = null, POINT? maxWindowSize = null) {
         this.minWindowSize = minWindowSize;
         this.maxWindowSize = maxWindowSize;

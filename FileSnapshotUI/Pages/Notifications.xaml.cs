@@ -6,17 +6,15 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace FileSnapshotUI.Pages;
 
 /// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
+/// Page showing notifications related to App
 /// </summary>
 public sealed partial class Notifications : Page {
     private readonly NotificationViewModel _viewModel;
     private MainWindow? _hostWindow;
+
     public Notifications() {
         InitializeComponent();
         var notificationService = App.Services.GetRequiredService<NotificationService>();
@@ -24,11 +22,8 @@ public sealed partial class Notifications : Page {
         this.DataContext = _viewModel;
     }
 
-    //public NotificationViewModel ViewModel => _viewModel;
-
     private void OnNotificationClicked(object sender, RoutedEventArgs e) {
         if (sender is Button button && button.DataContext is Notification notification) {
-            //OnNotificationSelected?.Invoke(notification.FileItem);
             _hostWindow?.SelectFile(notification.FileItem);
         }
     }
@@ -36,7 +31,6 @@ public sealed partial class Notifications : Page {
     private void OnRemoveNotification(object sender, RoutedEventArgs e) {
         if (sender is Button button && button.DataContext is Notification notification) {
             _viewModel.RemoveNotification(notification.Id);
-            //_viewModel.RemoveNotification(notification.Id);
         }
     }
 
@@ -46,6 +40,4 @@ public sealed partial class Notifications : Page {
             _hostWindow = window;
         }
     }
-
-    //public event Action<FileItem>? OnNotificationSelected;
 }

@@ -1,7 +1,6 @@
 ﻿using FileSnapshotUI.Helpers;
 using LibGit2Sharp;
 using Microsoft.UI;
-//using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,29 +11,50 @@ using System.Runtime.CompilerServices;
 
 namespace FileSnapshotUI.Models;
 
+/// <summary>
+/// Represents a file tracked by the application, managing its snapshot lifecycle, 
+/// associated Git repository, and UI-specific display properties.
+/// </summary>
+/// <remarks>
+/// Upon initialization, this model automatically creates a local directory 
+/// within the application's data folder and initializes a Git repository 
+/// to manage the file's historical snapshots.
+/// </remarks>
 public partial class FileItem : INotifyPropertyChanged {
     private string _fileName = string.Empty;
     private string _fullPath = string.Empty;
     private readonly Guid _id;
-    private string _backupPath = string.Empty;
+    private string _backupPath = string.Empty;  // Git repo path
     private DateTime _lastBackupUTC = DateTime.MinValue;
+
+    // Default root path is set in %LocalAppData%/FileSnapshot
     private readonly string _defaultBackupPathRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileSnapshot");
-    private bool _isDarkMode = false;
+    private bool _isDarkMode = false;           // Checking app dark mode, used to set icon in App
     private TimeSpan _snapshotIntervalDuration;
-    private bool _isProcessing;
+    private bool _isProcessing;                 // Set when the file is under any kind of process, used to lock UI
+
+    // Default icon is set to Others
     private string _iconGlyphPath { get; set; } = "/Assets/OtherLogoLightMode48x48.png";
 
     public ObservableCollection<SnapshotDetails> Snapshots { get; } = [];
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;      // Necessary to let the UI know when a property has changed
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileItem"/> class.
+    /// </summary>
+    /// <param name="filePath">The absolute path to the file to track.</param>
+    /// <param name="backupPath">Optional custom path for storing backups. If null, uses the application data root.</param>
     public FileItem(string filePath, string? backupPath = null) {
         _id = Guid.NewGuid();
 
+        // Get Dark Mode status
         var uiSettings = new Windows.UI.ViewManagement.UISettings();
         var bgColor = uiSettings.GetColorValue(Windows.UI.ViewManagement.UIColorType.Background);
         _isDarkMode = bgColor == Colors.Black;
 
         FullPath = filePath;
+
+        // Create backup folder is custom path not specified
         if (string.IsNullOrEmpty(backupPath)) {
             _backupPath = Path.Combine(_defaultBackupPathRoot, _id.ToString());
         }
@@ -44,6 +64,7 @@ public partial class FileItem : INotifyPropertyChanged {
         Directory.CreateDirectory(_backupPath);
         Repository.Init(_backupPath);
 
+        // Set default snapshot interval to 1 day
         _snapshotIntervalDuration = TimeSpan.FromDays(1);
     }
 
@@ -51,7 +72,6 @@ public partial class FileItem : INotifyPropertyChanged {
         get => _lastBackupUTC.ToLocalTime();
         set {
             _lastBackupUTC = value.ToUniversalTime();
-            //OnPropertyChanged(nameof(LastBackup));
             OnPropertyChanged(nameof(LastBackupString));
         }
     }
@@ -105,6 +125,7 @@ public partial class FileItem : INotifyPropertyChanged {
         }
     }
 
+    // To determine file type to determine the steps needed to take snapshot
     public enum FileTypeEnum { Excel, Text, Word, Powerpoint, Other };
     private FileTypeEnum _fileType { get; set; }
 
@@ -132,6 +153,9 @@ public partial class FileItem : INotifyPropertyChanged {
         }
     }
 
+    /// <summary>
+    /// Update the icon and type based on file name.
+    /// </summary>
     private void UpdateTypeAndIcon() {
         var ext = Path.GetExtension(FileName).ToLowerInvariant();
         _fileType = ext switch {
@@ -145,6 +169,9 @@ public partial class FileItem : INotifyPropertyChanged {
         IconGlyphPath = GetIconGlyphPathFromFileType(_fileType, _isDarkMode);
     }
 
+    /// <summary>
+    /// Update the icon path based on file type.
+    /// </summary>
     private static string GetIconGlyphPathFromFileType(FileTypeEnum fileType, bool isDarkMode) {
         string themeSuffix = isDarkMode ? "DarkMode" : "LightMode";
         var glyphPath = fileType switch {
@@ -157,16 +184,32 @@ public partial class FileItem : INotifyPropertyChanged {
         return glyphPath;
     }
 
+    /// <summary>
+    /// Adds a new snapshot record to the <see cref="Snapshots"/> collection.
+    /// </summary>
+    /// <param name="snapshotTime">The timestamp of the snapshot.</param>
+    /// <param name="commit">The <see cref="Commit"/> object from the file's Git repository.</param>
+    /// <param name="trackedFiles">A collection of relative paths included in the snapshot.</param>
+    /// <param name="trackedDirectories">A collection of directories included in the snapshot.</param>
     public void AddSnapshot(DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles, IEnumerable<string> trackedDirectories) {
         Snapshots.Add(new SnapshotDetails(this.Id, snapshotTime, commit, trackedFiles, trackedDirectories));
         LastBackup = snapshotTime;
     }
 
+    /// <summary>
+    /// Notifies listeners (UI) that a property value has changed.
+    /// </summary>
+    /// <param name="propertyName">
+    /// The name of the property that changed. If omitted, the <see cref="CallerMemberNameAttribute"/> 
+    /// automatically provides the name of the calling method.
+    /// </param>
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) {
-        //System.Diagnostics.Debug.WriteLine($"PropertyChanged: {propertyName}");
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    /// <summary>
+    /// Updates the model's theme context and refreshes visual assets.
+    /// </summary>
     public void UpdateTheme(bool isDarkMode) {
         if (_isDarkMode != isDarkMode) {
             _isDarkMode = isDarkMode;
