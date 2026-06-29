@@ -25,8 +25,9 @@ public enum SnapshotMode {
 /// Orchestrates the process of creating snapshots for tracked files, 
 /// including sanitization, Git staging, and commit management.
 /// </summary>
-public class SnapshotService(NotificationService notifications) {
+public class SnapshotService(NotificationService notifications, IStateService stateService) {
     private readonly NotificationService _notifications = notifications;
+    private readonly IStateService _stateService = stateService;
 
     /// <summary>
     /// Performs an asynchronous snapshot operation on the specified <see cref="FileItem"/>.
@@ -36,6 +37,8 @@ public class SnapshotService(NotificationService notifications) {
     /// <param name="token">A <see cref="CancellationToken"/> to observe for cancellation requests.</param>
     /// <returns>A task representing the asynchronous snapshot operation.</returns>
     public async Task PerformSnapshotAsync(FileItem file, SnapshotMode mode, CancellationToken token) {
+        token.ThrowIfCancellationRequested();
+
         var workingDir = AppEnvironment.GetTempFolder();
         Directory.CreateDirectory(workingDir);
         string backupDir = file.BackupPath;
@@ -63,23 +66,23 @@ public class SnapshotService(NotificationService notifications) {
             if (!Repository.IsValid(backupDir)) throw new InvalidOperationException("Git repo not found. Backup location invalid.");
 
             // Delete tracked files to prep for backup
-            await FileOperationsHelper.DeleteTrackedFilesAsync(backupDir, oldTrackedFiles, oldTrackedDirectories, token);
+            await FileOperationsHelper.DeleteTrackedFilesAsync(backupDir, oldTrackedFiles, oldTrackedDirectories, CancellationToken.None);
 
             switch (fileType) {
                 case FileItem.FileTypeEnum.Excel:
                 case FileItem.FileTypeEnum.Word:
                 case FileItem.FileTypeEnum.Powerpoint:
                     // Copy, strip and extract Microsoft Office files
-                    await FileOperationsHelper.CopyFileAsync(sourcePath, workingDir, token);
+                    await FileOperationsHelper.CopyFileAsync(sourcePath, workingDir, CancellationToken.None);
                     var tempPath = Path.Combine(workingDir, Path.GetFileName(sourcePath));
 
-                    if (fileType == FileItem.FileTypeEnum.Excel) FileOperationsHelper.SanitizeExcelFile(tempPath, token);
-                    else if (fileType == FileItem.FileTypeEnum.Word) FileOperationsHelper.SanitizeWordFile(tempPath, token);
-                    else if (fileType == FileItem.FileTypeEnum.Powerpoint) FileOperationsHelper.SanitizePowerPointFile(tempPath, token);
+                    if (fileType == FileItem.FileTypeEnum.Excel) FileOperationsHelper.SanitizeExcelFile(tempPath, CancellationToken.None);
+                    else if (fileType == FileItem.FileTypeEnum.Word) FileOperationsHelper.SanitizeWordFile(tempPath, CancellationToken.None);
+                    else if (fileType == FileItem.FileTypeEnum.Powerpoint) FileOperationsHelper.SanitizePowerPointFile(tempPath, CancellationToken.None);
 
                     var extractPath = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(sourcePath));
                     ZipFile.ExtractToDirectory(tempPath, extractPath);
-                    await FileOperationsHelper.CopyDirectoryAsync(extractPath, backupDir, token);
+                    await FileOperationsHelper.CopyDirectoryAsync(extractPath, backupDir, CancellationToken.None);
 
                     // Track files and dirs
                     newTrackedFiles.AddRange(GetRelativeFiles(extractPath));
@@ -88,7 +91,7 @@ public class SnapshotService(NotificationService notifications) {
 
                 default:
                     // Just copy files for others
-                    await FileOperationsHelper.CopyFileAsync(sourcePath, backupDir, token);
+                    await FileOperationsHelper.CopyFileAsync(sourcePath, backupDir, CancellationToken.None);
                     newTrackedFiles.AddRange([$"{Path.GetFileName(sourcePath)}"]);
                     break;
             }
@@ -99,6 +102,9 @@ public class SnapshotService(NotificationService notifications) {
             Commit commit = GitHelper.StageAndCommit(repo, snapshotTime, newTrackedFiles);
 
             App.MainDispatcher.TryEnqueue(() => file.AddSnapshot(snapshotTime, commit, newTrackedFiles, newTrackedDirectories));
+
+            var snapshotDetails = new SnapshotDetails(file.Id, snapshotTime, commit, newTrackedFiles, newTrackedDirectories);
+            await _stateService.AddSnapshotAsync(snapshotDetails);
         }
         catch (EmptyCommitException) {
             // Only give notification for no changes in case if manual snapshot

@@ -44,7 +44,7 @@ namespace FileSnapshotUI.Pages {
             string? selectedFilePath = OpenDialogHelper.PickSingleFile(_hostWindow);
 
             if (!string.IsNullOrEmpty(selectedFilePath)) {
-                RootViewModel.Files.Add(new FileItem(selectedFilePath));
+                RootViewModel.AddNewTrackedFileAsync(new FileItem(selectedFilePath));
             }
         }
 
@@ -62,6 +62,10 @@ namespace FileSnapshotUI.Pages {
 
                 if (result == ContentDialogResult.Primary) {
                     var backupPath = selected.BackupPath;
+                    
+                    var stateService = App.Services.GetRequiredService<IStateService>();
+                    await stateService.RemoveFileItemAsync(selected);
+                    
                     RootViewModel.Files.Remove(selected);
 
                     // Add delete task to queue
@@ -74,7 +78,7 @@ namespace FileSnapshotUI.Pages {
                                 trackedFiles = selected.Snapshots.Last().TrackedFiles;
                                 trackedDirs = selected.Snapshots.Last().TrackedDirectories;
                             }
-                            await FileOperationsHelper.DeleteTrackedFilesAsync(backupPath, trackedFiles, trackedDirs, token, true);
+                            await FileOperationsHelper.DeleteTrackedFilesAsync(backupPath, trackedFiles, trackedDirs, token, false);
                         }
                         catch (Exception) { }
 

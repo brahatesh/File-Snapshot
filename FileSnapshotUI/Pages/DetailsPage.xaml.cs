@@ -45,16 +45,16 @@ namespace FileSnapshotUI.Pages {
                     var snapshotService = App.Services.GetRequiredService<SnapshotService>();
 
                     // Dialog asking if user wants to replace file or create a separate file
-                    ContentDialog confirmDialog = new ContentDialog {
-                        XamlRoot = this.XamlRoot,
-                        Title = "Replace current file",
-                        Content = $"Do you want to replace {file.FileName} with the snapshot taken at time {snapshot.SnapshotTimeString}?",
-                        PrimaryButtonText = "Yes",
-                        SecondaryButtonText = "No",
-                        CloseButtonText = "Cancel"
-                    };
-                    ContentDialogResult result = await confirmDialog.ShowAsync();
-                    if (result == ContentDialogResult.None) return; // Cancel clicked
+                    //ContentDialog confirmDialog = new ContentDialog {
+                    //    XamlRoot = this.XamlRoot,
+                    //    Title = "Replace current file",
+                    //    Content = $"Do you want to replace {file.FileName} with the snapshot taken at time {snapshot.SnapshotTimeString}?",
+                    //    PrimaryButtonText = "Yes",
+                    //    SecondaryButtonText = "No",
+                    //    CloseButtonText = "Cancel"
+                    //};
+                    //ContentDialogResult result = await confirmDialog.ShowAsync();
+                    //if (result == ContentDialogResult.None) return; // Cancel clicked
 
                     // Create working dir
                     var tempDir = AppEnvironment.GetTempFolder();
@@ -68,9 +68,9 @@ namespace FileSnapshotUI.Pages {
                         try {
                             // If user wants to replace file, take snapshot first to save current state. 
                             // Take snapshot in silent mode, no notification.
-                            if (result == ContentDialogResult.Primary) {
-                                await snapshotService.PerformSnapshotAsync(file, SnapshotMode.Silent, token);
-                            }
+                            //if (result == ContentDialogResult.Primary) {
+                            //    await snapshotService.PerformSnapshotAsync(file, SnapshotMode.Silent, token);
+                            //}
 
                             // Rollback repo and copy old file version to tempDir. Also, restores back to current commit.
                             await RollbackService.RollbackRepo(file, tempDir, snapshot, token);
@@ -87,12 +87,12 @@ namespace FileSnapshotUI.Pages {
                             await FileOperationsHelper.CopyFileAsync(newPath, rootPath, token);
 
                             // If user wants to replace, delete and rename file
-                            if(result==ContentDialogResult.Primary) {
-                                File.Delete(file.FullPath);
-                                File.Move(Path.Combine(rootPath, newFileName), file.FullPath);
-                            }
+                            //if(result==ContentDialogResult.Primary) {
+                            //    File.Delete(file.FullPath);
+                            //    File.Move(Path.Combine(rootPath, newFileName), file.FullPath);
+                            //}
 
-                            App.MainDispatcher.TryEnqueue(()=>_notificationService.AddNotification(file, $"File restored successfully to {(result==ContentDialogResult.Primary?file.FileName:newFileName)}"));
+                            App.MainDispatcher.TryEnqueue(()=>_notificationService.AddNotification(file, $"File restored successfully to {newFileName}"));
                         }
                         catch(Exception ex) {
                             App.MainDispatcher.TryEnqueue(()=>_notificationService.AddNotification(file, $"Failed to restore backup: {ex.Message}"));
@@ -123,6 +123,10 @@ namespace FileSnapshotUI.Pages {
                     ContentDialogResult result = await confirmDialog.ShowAsync();
 
                     if (result != ContentDialogResult.Primary) return;
+
+                    var stateService = App.Services.GetRequiredService<IStateService>();
+                    await stateService.RemoveSnapshotAsync(snapshot);
+
                     parentFile.Snapshots.Remove(snapshot);
                 }
             }

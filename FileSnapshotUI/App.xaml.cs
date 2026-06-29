@@ -1,4 +1,5 @@
-﻿using FileSnapshotUI.Helpers;
+﻿using FileSnapshotUI.Data;
+using FileSnapshotUI.Helpers;
 using FileSnapshotUI.Services;
 using FileSnapshotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,6 +89,9 @@ namespace FileSnapshotUI {
             // Host for configuration sharing with background threads and UI
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) => {
+                    services.AddDbContextFactory<AppDbContext>();
+
+                    services.AddSingleton<IStateService, SqliteStateService>();
                     services.AddSingleton<NotificationService>();
                     services.AddSingleton<BackgroundTaskQueue>();
                     services.AddSingleton<RootViewModel>();
@@ -107,6 +111,14 @@ namespace FileSnapshotUI {
             MainDispatcher = DispatcherQueue.GetForCurrentThread();
 
             await _host.StartAsync();
+
+            var stateService = Services.GetRequiredService<IStateService>();
+            var rootVm = Services.GetRequiredService<RootViewModel>();
+
+            var loadedFiles = await stateService.LoadTrackedFilesAsync();
+            foreach (var file in loadedFiles) {
+                rootVm.Files.Add(file);
+            }
 
             m_window = new MainWindow();
             m_window.Activate();

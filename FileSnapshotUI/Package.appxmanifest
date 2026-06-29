@@ -11,14 +11,14 @@
 
   <Identity
     Name="a15c9f9f-81c7-444a-8e47-e942ec33e954"
-    Publisher="CN=braha"
+    Publisher="CN=orbint"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="a15c9f9f-81c7-444a-8e47-e942ec33e954" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>FileSnapshotUI</DisplayName>
-    <PublisherDisplayName>braha</PublisherDisplayName>
+    <DisplayName>File Snapshot</DisplayName>
+    <PublisherDisplayName>ORB International</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -36,8 +36,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$" >
       <uap:VisualElements
-        DisplayName="FileSnapshotUI"
-        Description="FileSnapshotUI"
+        DisplayName="File Snapshot"
+        Description="File Snapshot"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">

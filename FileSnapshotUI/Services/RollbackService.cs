@@ -38,8 +38,11 @@ public class RollbackService() {
         var repo = new Repository(repoPath);
         GitHelper.ResetToCommit(repo, snapshot.Commit);
 
+        string stagingDir = Path.Combine(workingDir, "staging");
+        Directory.CreateDirectory(stagingDir);
+
         // Copy files to temp folder
-        await FileOperationsHelper.CopyTrackedFilesAsync(repoPath, workingDir, snapshot.TrackedFiles, token);
+        await FileOperationsHelper.CopyTrackedFilesAsync(repoPath, stagingDir, snapshot.TrackedFiles, token);
 
         string tempFilePath = Path.Combine(workingDir, file.FileName);
 
@@ -48,7 +51,7 @@ public class RollbackService() {
             case FileItem.FileTypeEnum.Excel:
             case FileItem.FileTypeEnum.Word:
             case FileItem.FileTypeEnum.Powerpoint:
-                ZipFile.CreateFromDirectory(workingDir, tempFilePath);
+                ZipFile.CreateFromDirectory(stagingDir, tempFilePath);
                 break;
         }
 

@@ -24,10 +24,12 @@ namespace FileSnapshotUI.Pages {
         private SystemTrayManager? systemTrayManager;
         private MainWindow? _hostWindow;
         private readonly NotificationService _notificationService;
+        private readonly IStateService _stateService;
 
         public SettingsPage() {
             this.InitializeComponent();
             _notificationService = App.Services.GetRequiredService<NotificationService>();
+            _stateService = App.Services.GetRequiredService<IStateService>();
         }
 
         private void TrayIconToggle_Toggled(object sender, RoutedEventArgs e) {
@@ -104,7 +106,13 @@ namespace FileSnapshotUI.Pages {
                     ContentDialogResult result = await dialog.ShowAsync();
                     if (result == ContentDialogResult.Primary) {
                         ViewModel.SelectedFile.FullPath = newPath;
+                        await _stateService.UpdateFileItemAsync(ViewModel.SelectedFile);
                     }
+                }
+                else {
+                    // If the file name matches perfectly, we still need to update it!
+                    ViewModel.SelectedFile.FullPath = newPath;
+                    await _stateService.UpdateFileItemAsync(ViewModel.SelectedFile);
                 }
             }
         }
@@ -161,6 +169,7 @@ namespace FileSnapshotUI.Pages {
                         }
 
                         await FileOperationsHelper.CopyTrackedFilesAsync(oldDir, newDir, trackedFiles, token, true);
+                        await _stateService.UpdateFileItemAsync(file);
 
                         App.MainDispatcher.TryEnqueue(() => {
                             _notificationService?.AddNotification(file, "Backup moved successfully");
@@ -193,7 +202,7 @@ namespace FileSnapshotUI.Pages {
             }
         }
 
-        private void SaveBackupDuration_Click(object sender, RoutedEventArgs e) {
+        private async void SaveBackupDuration_Click(object sender, RoutedEventArgs e) {
             if (ViewModel == null || ViewModel.SelectedFile == null) return;
             string durationString = BackupDuration.Text;
             TimeSpan duration;
@@ -218,6 +227,7 @@ namespace FileSnapshotUI.Pages {
                 return;
             }
             ViewModel.SelectedFile.SnapshotIntervalDuration = duration;
+            await _stateService.UpdateFileItemAsync(ViewModel.SelectedFile);
         }
     }
 }

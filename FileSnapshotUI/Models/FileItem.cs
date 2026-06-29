@@ -68,6 +68,22 @@ public partial class FileItem : INotifyPropertyChanged {
         _snapshotIntervalDuration = TimeSpan.FromDays(1);
     }
 
+    internal FileItem(Guid existingId, string filePath, string backupPath) {
+        _id = existingId;
+
+        var uiSettings = new Windows.UI.ViewManagement.UISettings();
+        var bgColor = uiSettings.GetColorValue(Windows.UI.ViewManagement.UIColorType.Background);
+        _isDarkMode = bgColor == Colors.Black;
+
+        FullPath = filePath;
+        _backupPath = backupPath;
+
+        Directory.CreateDirectory(_backupPath);
+        if (!Repository.IsValid(_backupPath)) {
+            Repository.Init(_backupPath);
+        }
+    }
+
     public DateTime LastBackup {
         get => _lastBackupUTC.ToLocalTime();
         set {

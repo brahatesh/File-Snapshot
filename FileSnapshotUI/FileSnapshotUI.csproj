@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKBootstrapAutoInitializeOptions_Default>true</WindowsAppSDKBootstrapAutoInitializeOptions_Default>
+    <SelfContained>false</SelfContained>
     <!--WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained-->
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -12,8 +14,8 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>FileSnapshotUI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <Platforms>x86;x64;</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <!--UseWindowsForms>true</UseWindowsForms-->
@@ -32,6 +34,13 @@
     <Content Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="InstallerOutput\**" />
+    <EmbeddedResource Remove="InstallerOutput\**" />
+    <None Remove="InstallerOutput\**" />
+    <Page Remove="InstallerOutput\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,6 +70,16 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250916003" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Assets\Square150x150Logo.scale-200.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Assets\StoreLogo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Page Update="Pages\DetailsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -88,13 +107,17 @@
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <!--PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun-->
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <!--PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed-->
+
+    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">False</PublishTrimmed>
   </PropertyGroup>
 
   <PropertyGroup>
     <SatelliteResourceLanguages>en-US;en-GB;en-IN</SatelliteResourceLanguages>
+    <PackageIcon>Square150x150Logo.scale-200.png</PackageIcon>
   </PropertyGroup>
 
   <!-- 2. Clean out residual WinUI3 / Windows App SDK native language folders -->
@@ -116,6 +139,9 @@
     <!-- Delete unwanted native folders right after compilation completes -->
     <RemoveDir Directories="@(UnwantedLocaleDirs)" ContinueOnError="true" />
   </Target>
+  <ItemGroup>
+    <PRIResource Remove="InstallerOutput\**" />
+  </ItemGroup>
 
   <!--PropertyGroup>
     <!- Enables aggressive .NET IL Trimming on publish ->
@@ -133,4 +159,9 @@
     <TrimmerRootAssembly Include="Microsoft.WinUI" />
     <TrimmerRootAssembly Include="Microsoft.Windows.SDK.NET" />
   </ItemGroup-->
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
 </Project>

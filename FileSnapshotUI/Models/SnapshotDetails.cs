@@ -12,15 +12,15 @@ namespace FileSnapshotUI.Models;
 /// </summary>
 public class SnapshotDetails {
     private readonly Guid _fileId;
-    private readonly DateTime _snapshotTimeUTC;
+    private readonly DateTime _snapshotTime;
     private readonly Commit _commit;
     private readonly ReadOnlyCollection<string> _trackedFiles;
     private readonly ReadOnlyCollection<string> _trackedDirectories;
 
     public SnapshotDetails(Guid fileId, DateTime snapshotTime, Commit commit, IEnumerable<string> trackedFiles, IEnumerable<string> trackedDirectories) {
         _fileId = fileId;
-        if (snapshotTime.Kind == DateTimeKind.Utc) throw new InvalidTimeZoneException("Snapshot TimeZone must be UTC");
-        _snapshotTimeUTC = snapshotTime;
+        if (snapshotTime.Kind != DateTimeKind.Local) throw new InvalidTimeZoneException("Snapshot TimeZone must be Local");
+        _snapshotTime = snapshotTime;
         _commit = commit;
         _trackedFiles = new ReadOnlyCollection<string>([.. trackedFiles]);
         _trackedDirectories = new ReadOnlyCollection<string>([.. trackedDirectories]);
@@ -31,11 +31,11 @@ public class SnapshotDetails {
     }
 
     public DateTime SnapshotTime {
-        get => _snapshotTimeUTC.ToLocalTime();
+        get => _snapshotTime;
     }
 
     public string SnapshotTimeString {
-        get => _snapshotTimeUTC.ToLocalTime().ToString("G");
+        get => _snapshotTime.ToString("G");
     }
 
     public Commit Commit {

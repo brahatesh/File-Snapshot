@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace FileSnapshotUI.ViewModels;
 
@@ -30,6 +31,7 @@ public partial class RootViewModel : INotifyPropertyChanged {
     public bool HasUnreadNotifications => UnreadCount > 0;
 
     private readonly NotificationService _notificationService;
+    private readonly IStateService _stateService;
 
     // Currently selected file in the UI
     private FileItem? _selectedFile;
@@ -60,7 +62,23 @@ public partial class RootViewModel : INotifyPropertyChanged {
 
     public RootViewModel() {
         _notificationService = App.Services.GetRequiredService<NotificationService>();
+        _stateService = App.Services.GetRequiredService<IStateService>();
         _notificationService.ViewModel.Notifications.CollectionChanged += Notifications_CollectionChanged;
+    }
+
+    // Call this whenever a user selects a new file to track
+    public void AddNewTrackedFileAsync(FileItem newFile) {
+        // Update the UI collection
+        Files.Add(newFile);
+
+        var queue = App.Services.GetRequiredService<BackgroundTaskQueue>();
+
+        // Immediately save the new file record to the SQLite database
+        queue.EnqueueTask(async (token) => {
+            await _stateService.AddFileItemAsync(newFile);
+
+            await default(ValueTask);
+        });
     }
 
     // New notification added, update unread counter
